@@ -20,6 +20,9 @@ const baseConfig = tseslint.config({
   rules: {
     "no-console": "warn",
     "no-unused-vars": "off",
+    "linebreak-style": "off",
+    // Ensure Prettier tolerates OS-native EOLs (fixes Delete `␍` on Windows)
+    "prettier/prettier": ["error", { endOfLine: "auto" }],
   },
 });
 
@@ -56,11 +59,19 @@ const reactConfig = tseslint.config({
   },
 });
 
+const supabaseClientLintOverride = tseslint.config({
+  files: ["src/db/supabase.client.ts"],
+  rules: {
+    "prettier/prettier": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
   jsxA11yConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
-  eslintPluginPrettier
+  eslintPluginPrettier,
+  supabaseClientLintOverride
 );
