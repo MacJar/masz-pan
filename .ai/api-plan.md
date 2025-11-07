@@ -37,27 +37,6 @@
  - Idempotency: optional Idempotency-Key header for state transitions and awards
  - All write endpoints require authentication unless explicitly stated
 
- ### 2.1 Auth & Session (integration with Supabase Auth)
-
- - GET /api/auth/user
-   - Description: Return current user session and own profile (if exists)
-   - Query: none
-   - Response:
- ```json
- {
-   "user": { "id": "uuid", "email": "string" },
-   "profile": {
-     "id": "uuid",
-     "username": "string",
-     "location_text": "string|null",
-     "rodo_consent": true,
-     "created_at": "timestamptz",
-     "updated_at": "timestamptz"
-   }
- }
- ```
-   - 200 OK | 401 Unauthorized
-
  ### 2.2 Profiles
 
  - GET /api/profile

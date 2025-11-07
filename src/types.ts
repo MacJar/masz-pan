@@ -1,0 +1,197 @@
+import type { Tables as Row, TablesInsert as Insert, TablesUpdate as Update, Enums } from "./db/database.types";
+
+/**
+ * Shared enums derived from DB
+ */
+export type ReservationStatus = Enums<"reservation_status">;
+export type ToolStatus = Enums<"tool_status">;
+export type LedgerKind = Enums<"ledger_kind">;
+export type AwardKind = Enums<"award_kind">;
+
+/** Generic cursor-based pagination wrapper */
+export interface CursorPage<TItem> {
+  items: TItem[];
+  next_cursor: string | null;
+}
+
+/** Generic OK deletion result */
+export interface DeleteResultDTO {
+  deleted: true;
+}
+
+/** Generic archive result */
+export interface ArchiveResultDTO {
+  archived: true;
+  archived_at: string;
+}
+
+/** Minimal GeoJSON Point for profile geocoding responses */
+export interface GeoJSONPoint {
+  type: "Point";
+  coordinates: [number, number]; // [lon, lat]
+}
+
+/** Standard API error envelope (for convenience) */
+export interface ApiErrorDTO {
+  error: { code: string; message: string; details?: unknown };
+}
+
+// =====================
+// Profiles
+// =====================
+
+export type ProfileDTO = Row<"profiles">;
+
+export type ProfileUpsertCommand = Pick<Insert<"profiles">, "username" | "location_text" | "rodo_consent">;
+
+/**
+ * Public profile view mapped to API shape.
+ * Note: DB view uses `avg_stars`; API exposes `avg_rating`.
+ */
+export interface PublicProfileDTO {
+  id: NonNullable<Row<"public_profiles">["id"]>;
+  username: Row<"public_profiles">["username"];
+  location_text: Row<"public_profiles">["location_text"];
+  avg_rating: Row<"public_profiles">["avg_stars"];
+  ratings_count: Row<"public_profiles">["ratings_count"];
+}
+
+export interface ProfileGeocodeResultDTO {
+  location_geog: GeoJSONPoint;
+}
+
+// =====================
+// Tools
+// =====================
+
+/**
+ * Tool row suitable for API responses. Internal search column omitted.
+ */
+export type ToolDTO = Omit<Row<"tools">, "search_name_tsv">;
+
+export type CreateToolCommand = Pick<Insert<"tools">, "name" | "description" | "suggested_price_tokens">;
+
+export type UpdateToolCommand = Partial<Pick<Update<"tools">, "name" | "description" | "suggested_price_tokens">>;
+
+export type ToolArchiveResultDTO = ArchiveResultDTO;
+
+export type ToolListItemDTO = Pick<ToolDTO, "id" | "name" | "status">;
+export type ToolListPageDTO = CursorPage<ToolListItemDTO>;
+
+export type ToolSearchItemDTO = Pick<ToolDTO, "id" | "name"> & {
+  distance_m: number;
+};
+export type ToolSearchPageDTO = CursorPage<ToolSearchItemDTO>;
+
+// =====================
+// Tool Images & Storage
+// =====================
+
+export type ToolImageDTO = Row<"tool_images">;
+
+export type CreateToolImageCommand = Pick<Insert<"tool_images">, "storage_key" | "position">;
+
+export interface CreateUploadUrlCommand {
+  content_type: string;
+  size_bytes: number;
+}
+
+export interface ImageUploadURLDTO {
+  upload_url: string;
+  headers: Record<string, string>;
+  storage_key: string;
+}
+
+export type ToolWithImagesDTO = ToolDTO & { images: ToolImageDTO[] };
+
+// =====================
+// Reservations
+// =====================
+
+export type ReservationDTO = Row<"reservations">;
+
+export type CreateReservationCommand = Pick<Insert<"reservations">, "tool_id" | "owner_id">;
+
+export type ReservationListItemDTO = Pick<ReservationDTO, "id" | "status">;
+export type ReservationListPageDTO = CursorPage<ReservationListItemDTO>;
+
+export type ReservationWithToolDTO = ReservationDTO & {
+  tool?: Pick<ToolDTO, "id" | "name" | "owner_id" | "suggested_price_tokens" | "status">;
+};
+
+export interface ReservationTransitionCommand {
+  new_status: ReservationStatus;
+  price_tokens?: number;
+}
+
+export interface ReservationLedgerEffectsDTO {
+  hold: number | null;
+  transfer: number | null;
+}
+
+export interface ReservationTransitionResultDTO {
+  reservation: ReservationDTO;
+  ledger: ReservationLedgerEffectsDTO;
+}
+
+export interface ReservationContactsDTO {
+  owner_email: string;
+  borrower_email: string;
+}
+
+// =====================
+// Tokens: Balances & Ledger
+// =====================
+
+export type BalanceDTO = Row<"balances">;
+
+export type LedgerEntryDTO = Row<"token_ledger">;
+export type LedgerPageDTO = CursorPage<LedgerEntryDTO>;
+
+export interface AwardSignupResultDTO {
+  awarded: boolean;
+  amount: number;
+}
+
+export interface AwardListingCommand {
+  tool_id: string;
+}
+export interface AwardListingResultDTO {
+  awarded: boolean;
+  amount: number;
+  count_used: number;
+}
+
+export interface RescueClaimResultDTO {
+  awarded: boolean;
+  amount: number;
+  claim_date_cet: string;
+}
+
+// =====================
+// Ratings
+// =====================
+
+export type RatingDTO = Row<"ratings">;
+
+export type CreateRatingCommand = Pick<Insert<"ratings">, "reservation_id" | "stars">;
+
+export type RatingSummaryDTO = Pick<Row<"rating_stats">, "rated_user_id" | "avg_stars" | "ratings_count">;
+
+// =====================
+// Audit Log (limited)
+// =====================
+
+export type AuditEventDTO = Row<"audit_log">;
+export type AuditEventPageDTO = CursorPage<AuditEventDTO>;
+
+// =====================
+// AI Helper
+// =====================
+
+export interface DescribeToolCommand {
+  name: string;
+}
+export interface DescribeToolSuggestionDTO {
+  suggestion: string;
+}
