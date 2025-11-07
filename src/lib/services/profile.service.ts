@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
+import { createServiceClient } from "../../db/supabase.client.ts";
 import type { ProfileDTO } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
 
@@ -38,18 +39,19 @@ export class SupabaseQueryError extends Error {
  * @throws {SupabaseAuthError} When the user metadata call fails.
  */
 export async function getAuthenticatedUserId(supabase: SupabaseClient): Promise<string | null> {
+  // TODO: Remove this when we have a proper auth system
+  if (import.meta.env.AUTH_BYPASS === "true") {
+    const mockUserId = import.meta.env.AUTH_BYPASS_USER_ID ?? "00000000-0000-0000-0000-000000000000";
+    return mockUserId;
+  }
   const { data, error } = await supabase.auth.getUser();
-
   if (error) {
     throw new SupabaseAuthError("Failed to retrieve authenticated user.", error);
   }
-
   const userId = data?.user?.id;
-
   if (!userId) {
     return null;
   }
-
   return userId;
 }
 
@@ -98,8 +100,24 @@ export async function logAuditEvent(
     payload.details = details;
   }
 
-  const { error } = await supabase.from("audit_log").insert(payload);
+  // TODO: Remove this when we have a proper auth system
+  // Prefer service-role client (bypasses RLS safely on server)
+  const serviceClient = createServiceClient();
+  if (serviceClient) {
+    const { error } = await serviceClient.from("audit_log").insert(payload);
+    if (error && import.meta.env.DEV) {
+      // eslint-disable-next-line no-console -- server-side diagnostic only in development
+      console.warn("Failed to write audit event (service)", { eventType, error });
+    }
+    return;
+  }
 
+  // In bypass mode without service key: skip audit writes to avoid noisy RLS errors
+  if (import.meta.env.AUTH_BYPASS === "true") {
+    return;
+  }
+
+  const { error } = await supabase.from("audit_log").insert(payload);
   if (error && import.meta.env.DEV) {
     // eslint-disable-next-line no-console -- server-side diagnostic only in development
     console.warn("Failed to write audit event", { eventType, error });
