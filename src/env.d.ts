@@ -18,6 +18,8 @@ interface ImportMetaEnv {
   readonly AUTH_BYPASS: string; // 'true' to bypass Supabase Auth on server
   readonly AUTH_BYPASS_USER_ID: string; // mock user id when bypassing
   readonly SUPABASE_SERVICE_ROLE_KEY: string; // optional: enables RLS-bypassing server writes (server-only)
+  readonly GEOCODING_URL: string; // server-only: Edge Function URL
+  readonly GEOCODING_KEY: string; // server-only: Edge Function secret
 }
 
 interface ImportMeta {

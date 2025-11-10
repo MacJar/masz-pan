@@ -1,14 +1,17 @@
 import type { APIContext } from "astro";
 
-import type { ProfileDTO } from "../../types.ts";
+import type { ProfileDTO, ProfileUpsertCommand } from "../../types.ts";
 import {
   SupabaseAuthError,
   SupabaseQueryError,
   fetchProfileById,
   logAuditEvent,
   getAuthenticatedUserId,
+  UsernameTakenError,
+  upsertOwnProfile,
 } from "../../lib/services/profile.service.ts";
-import { jsonError, jsonOk } from "../../lib/api/responses.ts";
+import { jsonError, jsonOk, jsonCreated } from "../../lib/api/responses.ts";
+import { z } from "zod";
 
 class ProfilePayloadError extends Error {
   constructor(message: string) {
@@ -61,6 +64,84 @@ export async function GET({ locals }: APIContext): Promise<Response> {
     return handleUnexpectedError(error);
   }
 }
+
+/**
+ * Creates or updates the authenticated user's profile.
+ * - 201 Created on insert
+ * - 200 OK on update
+ */
+export async function PUT({ locals, request }: APIContext): Promise<Response> {
+  const supabase = locals.supabase;
+
+  if (!supabase) {
+    return jsonError(500, "internal_error", "Unexpected server configuration error.");
+  }
+
+  try {
+    const userId = await getAuthenticatedUserId(supabase);
+    if (!userId) {
+      await logAuditEvent(supabase, "security", null, {
+        endpoint: "/api/profile",
+        reason: "auth_required",
+      });
+      return jsonError(401, "auth_required", "Authentication required.");
+    }
+
+    const raw = await request.json().catch(() => ({}));
+    const parseResult = ProfileUpsertCommandSchema.safeParse(raw);
+    if (!parseResult.success) {
+      await logAuditEvent(supabase, "profile_update_failed", userId, {
+        endpoint: "/api/profile",
+        reason: "validation_error",
+      });
+      return jsonError(400, "validation_error", "Invalid request payload.", parseZodIssues(parseResult.error));
+    }
+
+    const cmd = normalizeProfileUpsertCommand(parseResult.data);
+
+    const { profile, created, geocodeTriggered } = await upsertOwnProfile(supabase, userId, cmd);
+
+    await logAuditEvent(supabase, created ? "profile_create" : "profile_update", userId, {
+      endpoint: "/api/profile",
+      geocode_triggered: geocodeTriggered,
+      profile_id: profile.id,
+    });
+
+    return created ? jsonCreated(profile) : jsonOk(profile);
+  } catch (error) {
+    if (error instanceof UsernameTakenError) {
+      await logAuditEvent(locals.supabase, "profile_update_failed", null, {
+        endpoint: "/api/profile",
+        reason: "username_taken",
+      });
+      return jsonError(409, "username_taken", "Username is already taken.");
+    }
+
+    return handleUnexpectedError(error);
+  }
+}
+
+const ProfileUpsertCommandSchema = z.object({
+  username: z.string().trim().min(1),
+  location_text: z.string().trim().optional(),
+  rodo_consent: z.boolean(),
+});
+
+function normalizeProfileUpsertCommand(input: z.infer<typeof ProfileUpsertCommandSchema>): ProfileUpsertCommand {
+  const location = typeof input.location_text === "string" && input.location_text.trim().length > 0
+    ? input.location_text.trim()
+    : null;
+  return {
+    username: input.username.trim(),
+    location_text: location,
+    rodo_consent: input.rodo_consent,
+  };
+}
+
+function parseZodIssues(error: z.ZodError): Array<{ path: string; message: string }> {
+  return error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
+}
+
 
 function handleUnexpectedError(error: unknown): Response {
   const details = extractErrorDetails(error);

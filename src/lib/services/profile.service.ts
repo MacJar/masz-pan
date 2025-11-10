@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
 import { createServiceClient } from "../../db/supabase.client.ts";
-import type { ProfileDTO } from "../../types.ts";
+import type { ProfileDTO, ProfileUpsertCommand } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
+import { geocodeLocation } from "./geocoding.service.ts";
 
 const NOT_FOUND_ERROR_CODE = "PGRST116";
 
@@ -77,6 +78,123 @@ export async function fetchProfileById(supabase: SupabaseClient, userId: string)
   }
 
   return data;
+}
+
+export class UsernameTakenError extends Error {
+  constructor() {
+    super("Username taken");
+    this.name = "UsernameTakenError";
+  }
+}
+
+export async function upsertOwnProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  cmd: ProfileUpsertCommand
+): Promise<{ profile: ProfileDTO; created: boolean; geocodeTriggered: boolean }> {
+  const normalizedUsername = cmd.username.trim();
+  const normalizedLocation = normalizeLocationText(cmd.location_text ?? null);
+
+  const current = await fetchProfileById(supabase, userId);
+  let geocodeTriggered = false;
+
+  // Uniqueness check only if username differs from current or profile doesn't exist
+  if (!current || current.username !== normalizedUsername) {
+    const { data: existing, error: existingErr } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", normalizedUsername)
+      .neq("id", userId)
+      .limit(1);
+    if (existingErr) {
+      throw new SupabaseQueryError("Failed to check username uniqueness.", existingErr.code, existingErr);
+    }
+    if (Array.isArray(existing) && existing.length > 0) {
+      throw new UsernameTakenError();
+    }
+  }
+
+  if (!current) {
+    const insertRow: Database["public"]["Tables"]["profiles"]["Insert"] = {
+      id: userId,
+      username: normalizedUsername,
+      rodo_consent: cmd.rodo_consent,
+      location_text: normalizedLocation,
+    };
+    if (normalizedLocation) {
+      const geo = await geocodeLocation(normalizedLocation);
+      if (geo) {
+        geocodeTriggered = true;
+        insertRow.location_geog = geo.location_geog as unknown;
+      }
+    }
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert(insertRow)
+      .select("*")
+      .single();
+    if (error) {
+      // Map unique violation to conflict
+      if (error.code === "23505") {
+        throw new UsernameTakenError();
+      }
+      throw new SupabaseQueryError("Failed to create profile.", error.code, error);
+    }
+    return { profile: data as ProfileDTO, created: true, geocodeTriggered };
+  }
+
+  const updates: Database["public"]["Tables"]["profiles"]["Update"] = {};
+  if (current.username !== normalizedUsername) {
+    updates.username = normalizedUsername;
+  }
+  if (current.rodo_consent !== cmd.rodo_consent) {
+    updates.rodo_consent = cmd.rodo_consent;
+  }
+  if (hasLocationChanged(current.location_text, normalizedLocation)) {
+    updates.location_text = normalizedLocation;
+    if (normalizedLocation) {
+      const geo = await geocodeLocation(normalizedLocation);
+      if (geo) {
+        geocodeTriggered = true;
+        updates.location_geog = geo.location_geog as unknown;
+      } else {
+        // if geocode failed, explicitly null out location_geog to avoid stale data when text changed
+        updates.location_geog = null as unknown as undefined;
+      }
+    } else {
+      updates.location_geog = null as unknown as undefined;
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return { profile: current, created: false, geocodeTriggered };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId)
+    .select("*")
+    .single();
+  if (error) {
+    if (error.code === "23505") {
+      throw new UsernameTakenError();
+    }
+    throw new SupabaseQueryError("Failed to update profile.", error.code, error);
+  }
+  return { profile: data as ProfileDTO, created: false, geocodeTriggered };
+}
+
+export function normalizeLocationText(input: string | null | undefined): string | null {
+  if (typeof input !== "string") {
+    return null;
+  }
+  const trimmed = input.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+
+export function hasLocationChanged(prev: string | null, next: string | null): boolean {
+  return normalizeLocationText(prev) !== normalizeLocationText(next);
 }
 
 /**

@@ -12,6 +12,13 @@ export function jsonOk<T>(body: T): Response {
   });
 }
 
+export function jsonCreated<T>(body: T): Response {
+  return new Response(JSON.stringify(body), {
+    status: 201,
+    headers: JSON_HEADERS,
+  });
+}
+
 export function jsonError(
   status: number,
   code: string,
