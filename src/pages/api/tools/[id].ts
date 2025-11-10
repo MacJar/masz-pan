@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { ToolsService } from "../../../../lib/services/tools.service";
+// FIX: Correct import path to follow project structure guidelines
+import { ToolsService } from "../../../lib/services/tools.service";
 
 export const prerender = false;
 
@@ -20,7 +21,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
             details: validation.error.flatten(),
           },
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -35,7 +36,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
             message: "The requested tool does not exist or you do not have permission to view it.",
           },
         }),
-        { status: 404, headers: { "Content-Type": "application/json" } },
+        { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -52,7 +53,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
           message: "An unexpected error occurred on the server.",
         },
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };

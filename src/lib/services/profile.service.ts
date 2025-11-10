@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
 import { createServiceClient } from "../../db/supabase.client.ts";
-import type { ProfileDTO, ProfileUpsertCommand } from "../../types.ts";
+import type { ProfileDTO, ProfileUpsertCommand, RatingSummaryDTO } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
 import { geocodeLocation } from "./geocoding.service.ts";
+import type { PublicProfileDTO } from "../../types";
 
 const NOT_FOUND_ERROR_CODE = "PGRST116";
 
@@ -54,6 +55,43 @@ export async function getAuthenticatedUserId(supabase: SupabaseClient): Promise<
     return null;
   }
   return userId;
+}
+
+/**
+ * Fetches the user's rating summary from the materialized view.
+ * If the user has no ratings but the profile exists, it returns a zero-summary.
+ *
+ * @returns {Promise<RatingSummaryDTO | null>} The rating summary or null if the user profile does not exist.
+ * @throws {SupabaseQueryError} When the database query fails for reasons other than the user not being found.
+ */
+export async function getRatingSummary(supabase: SupabaseClient, userId: string): Promise<RatingSummaryDTO | null> {
+  // First, try to get the summary from the materialized view
+  const { data: summary, error: summaryError } = await supabase
+    .from("rating_stats")
+    .select("rated_user_id, avg_stars, ratings_count")
+    .eq("rated_user_id", userId)
+    .single();
+
+  if (summaryError && summaryError.code !== NOT_FOUND_ERROR_CODE) {
+    throw new SupabaseQueryError("Failed to fetch rating summary.", summaryError.code, summaryError);
+  }
+
+  if (summary) {
+    return summary;
+  }
+
+  // If no summary, check if the profile exists
+  const profile = await fetchProfileById(supabase, userId);
+  if (!profile) {
+    return null; // User not found
+  }
+
+  // Profile exists, but no ratings yet
+  return {
+    rated_user_id: userId,
+    avg_stars: null,
+    ratings_count: 0,
+  };
 }
 
 /**
@@ -128,11 +166,7 @@ export async function upsertOwnProfile(
         insertRow.location_geog = geo.location_geog as unknown;
       }
     }
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert(insertRow)
-      .select("*")
-      .single();
+    const { data, error } = await supabase.from("profiles").insert(insertRow).select("*").single();
     if (error) {
       // Map unique violation to conflict
       if (error.code === "23505") {
@@ -170,12 +204,7 @@ export async function upsertOwnProfile(
     return { profile: current, created: false, geocodeTriggered };
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", userId)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("profiles").update(updates).eq("id", userId).select("*").single();
   if (error) {
     if (error.code === "23505") {
       throw new UsernameTakenError();
@@ -241,3 +270,40 @@ export async function logAuditEvent(
     console.warn("Failed to write audit event", { eventType, error });
   }
 }
+
+export const profileService = {
+  getAuthenticatedUserId,
+  getRatingSummary,
+  fetchProfileById,
+  upsertOwnProfile,
+  normalizeLocationText,
+  hasLocationChanged,
+  logAuditEvent,
+  getPublicProfile: async (supabase: SupabaseClient, userId: string): Promise<PublicProfileDTO | null> => {
+    const { data, error } = await supabase.from("public_profiles").select().eq("id", userId).single();
+
+    if (error) {
+      console.error("Error fetching public profile:", error);
+      if (error.code === "PGRST116") {
+        // No rows found is not a critical error, just return null
+        return null;
+      }
+      throw new Error("Could not fetch user's public profile.");
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Map db view to DTO
+    const profile: PublicProfileDTO = {
+      id: typeof data.id === "string" ? data.id : "",
+      username: data.username ?? "",
+      location_text: data.location_text ?? "",
+      avg_rating: data.avg_stars ?? null, // Remap avg_stars to avg_rating
+      ratings_count: typeof data.ratings_count === "number" ? data.ratings_count : 0,
+    };
+
+    return profile;
+  },
+};

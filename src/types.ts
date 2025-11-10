@@ -178,6 +178,15 @@ export type CreateRatingCommand = Pick<Insert<"ratings">, "reservation_id" | "st
 
 export type RatingSummaryDTO = Pick<Row<"rating_stats">, "rated_user_id" | "avg_stars" | "ratings_count">;
 
+/**
+ * @deprecated Use RatingSummaryDTO instead
+ */
+export interface UserRatingSummaryDto {
+  rated_user_id: string;
+  avg_stars: number | null;
+  ratings_count: number;
+}
+
 // =====================
 // Audit Log (limited)
 // =====================
