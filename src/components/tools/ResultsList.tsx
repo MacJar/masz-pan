@@ -10,7 +10,7 @@ export interface ResultsListProps {
   isLoadingMore: boolean;
 }
 
-export default function ResultsList(props: ResultsListProps): JSX.Element {
+export default function ResultsList(props: ResultsListProps): React.JSX.Element {
   const { items, onLoadMore, hasNext, isLoadingMore } = props;
   return (
     <div className="space-y-3">
@@ -30,5 +30,3 @@ export default function ResultsList(props: ResultsListProps): JSX.Element {
     </div>
   );
 }
-
-
