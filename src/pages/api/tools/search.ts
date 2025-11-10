@@ -10,8 +10,8 @@ import {
 } from "../../../lib/services/profile.service.ts";
 import {
 	MissingLocationError,
+	ToolsService,
 	ValidationError,
-	searchActiveToolsNearProfile,
 } from "../../../lib/services/tools.service.ts";
 
 export const prerender = false;
@@ -49,7 +49,8 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
 			return jsonError(400, "validation_error", "Invalid query.", parseZodIssues(parsed.error));
 		}
 
-		const result = await searchActiveToolsNearProfile(supabase, userId, {
+		const service = new ToolsService(supabase);
+		const result = await service.searchActiveToolsNearProfile(userId, {
 			q: parsed.data.q.trim(),
 			limit: parsed.data.limit,
 			cursor: parsed.data.cursor,

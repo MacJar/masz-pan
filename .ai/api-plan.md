@@ -37,7 +37,7 @@
  - Idempotency: optional Idempotency-Key header for state transitions and awards
  - All write endpoints require authentication unless explicitly stated
 
- ### 2.2 Profiles
+i
 
  - GET /api/profile
    - Description: Get authenticated user's profile
