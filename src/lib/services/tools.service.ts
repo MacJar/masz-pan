@@ -10,6 +10,12 @@ export interface ToolSearchParams {
   cursor?: string | null;
 }
 
+export interface DeleteToolImageCommand {
+  toolId: string;
+  imageId: string;
+  userId: string;
+}
+
 export class ValidationError extends Error {
   readonly details?: unknown;
   constructor(message: string, details?: unknown) {
@@ -134,6 +140,59 @@ export class ToolsService {
     }
 
     return newImage;
+  }
+
+  async deleteToolImage(command: DeleteToolImageCommand): Promise<void> {
+    const { data: image, error: imageError } = await this.supabase
+      .from("tool_images")
+      .select(
+        `
+        tool_id,
+        storage_key,
+        tool:tools (
+          owner_id
+        )
+      `
+      )
+      .eq("id", command.imageId)
+      .single();
+
+    if (imageError) {
+      if (imageError.code === "PGRST116") {
+        throw new NotFoundError("Image not found");
+      }
+      throw new SupabaseQueryError("Failed to fetch tool image for deletion.", imageError.code, imageError);
+    }
+
+    if (!image.tool) {
+      // This should not happen due to foreign key constraints, but it's a good safeguard.
+      throw new NotFoundError("Image is not associated with any tool.");
+    }
+
+    if (image.tool.owner_id !== command.userId) {
+      throw new ForbiddenError("You are not the owner of this tool.");
+    }
+
+    if (image.tool_id !== command.toolId) {
+      // The image does not belong to the tool specified in the URL.
+      // This is a form of authorization check.
+      throw new NotFoundError("Image does not belong to the specified tool.");
+    }
+
+    const { error: storageError } = await this.supabase.storage.from("tool-images").remove([image.storage_key]);
+
+    if (storageError) {
+      // It's better to log this error but not fail the whole operation,
+      // as the database record is the source of truth.
+      // We can have a cleanup job for orphaned storage files later.
+      console.error("Failed to delete image from storage:", storageError);
+    }
+
+    const { error: dbError } = await this.supabase.from("tool_images").delete().eq("id", command.imageId);
+
+    if (dbError) {
+      throw new SupabaseQueryError("Failed to delete tool image from database.", dbError.code, dbError);
+    }
   }
 
   async searchActiveToolsNearProfile(userId: string, params: ToolSearchParams): Promise<ToolSearchPageDTO> {
