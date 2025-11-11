@@ -1,45 +1,103 @@
-import type { APIRoute } from "astro";
 import { z } from "zod";
-import {
-	ForbiddenError,
-	NotFoundError,
-	SupabaseQueryError,
-	ToolsService,
-} from "../../../../lib/services/tools.service";
-import { apiError, apiSuccess } from "../../../../lib/api/responses";
+import type { APIRoute } from "astro";
+
+import { ToolsService } from "../../../../lib/services/tools.service";
+import { AppError } from "../../../../lib/services/errors.service";
 
 export const prerender = false;
 
-const ParamsSchema = z.object({
-	id: z.string().uuid(),
+export const CreateToolImageDtoSchema = z.object({
+  storage_key: z.string().min(1, { message: "Storage key is required" }),
+  position: z
+    .number()
+    .int()
+    .min(0, { message: "Position must be a non-negative integer" }),
 });
 
-export const GET: APIRoute = async ({ params, locals }) => {
-	const validation = ParamsSchema.safeParse(params);
-	if (!validation.success) {
-		return apiError(400, "INVALID_INPUT", "Tool ID must be a valid UUID", validation.error.flatten());
-	}
+export type CreateToolImageDto = z.infer<typeof CreateToolImageDtoSchema>;
 
-	const { supabase, session } = locals;
-	const toolsService = new ToolsService(supabase);
-	const currentUserId = session?.user.id;
-	const toolId = validation.data.id;
+const paramsSchema = z.object({
+  id: z.string().uuid({ message: "Tool ID must be a valid UUID." }),
+});
 
-	try {
-		const images = await toolsService.getToolImagesForTool(toolId, currentUserId);
-		return apiSuccess(images);
-	} catch (error) {
-		if (error instanceof NotFoundError) {
-			return apiError(404, "NOT_FOUND", error.message);
-		}
-		if (error instanceof ForbiddenError) {
-			return apiError(403, "FORBIDDEN", error.message);
-		}
-		if (error instanceof SupabaseQueryError) {
-			console.error("Supabase error while fetching tool images:", error.cause);
-			return apiError(500, "DATABASE_ERROR", "Could not fetch tool images due to a database error.");
-		}
-		console.error("Unexpected error fetching tool images:", error);
-		return apiError(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
-	}
+export const POST: APIRoute = async ({ params, request, locals }) => {
+  try {
+    const { session } = locals;
+    if (!session?.user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "UNAUTHORIZED",
+            message: "Authentication is required.",
+          },
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const paramsValidation = paramsSchema.safeParse(params);
+    if (!paramsValidation.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "BAD_REQUEST",
+            message: "Invalid tool ID provided.",
+            details: paramsValidation.error.flatten(),
+          },
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await request.json();
+    const bodyValidation = CreateToolImageDtoSchema.safeParse(body);
+
+    if (!bodyValidation.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "BAD_REQUEST",
+            message: "Invalid request body.",
+            details: bodyValidation.error.flatten(),
+          },
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const service = new ToolsService(locals.supabase);
+    const newImage = await service.createToolImage(
+      paramsValidation.data.id,
+      session.user.id,
+      bodyValidation.data
+    );
+
+    return new Response(JSON.stringify(newImage), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        }),
+        { status: error.status, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    console.error("Internal Server Error:", error);
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred on the server.",
+        },
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 };

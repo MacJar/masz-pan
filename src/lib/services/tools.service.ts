@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { ToolSearchPageDTO, ToolWithImagesDTO } from "../../types.ts";
-import { fetchProfileById, SupabaseQueryError } from "./profile.service.ts";
+import type { CreateToolImageDto } from "../pages/api/tools/[id]/images.ts";
+import type { ToolImageDTO, ToolSearchPageDTO, ToolWithImagesDTO } from "../../types.ts";
+import { fetchProfileById } from "./profile.service.ts";
+import { ConflictError, ForbiddenError, NotFoundError, SupabaseQueryError } from "./errors.service.ts";
 
 export interface ToolSearchParams {
   q: string;
@@ -94,6 +96,44 @@ export class ToolsService {
     }
 
     return data as ToolWithImagesDTO | null;
+  }
+
+  async createToolImage(toolId: string, ownerId: string, data: CreateToolImageDto): Promise<ToolImageDTO> {
+    const { data: tool, error: toolError } = await this.supabase
+      .from("tools")
+      .select("owner_id")
+      .eq("id", toolId)
+      .single();
+
+    if (toolError) {
+      if (toolError.code === "PGRST116") {
+        throw new NotFoundError("Tool not found");
+      }
+      throw new SupabaseQueryError("Failed to fetch tool.", toolError.code, toolError);
+    }
+
+    if (tool.owner_id !== ownerId) {
+      throw new ForbiddenError("You are not the owner of this tool.");
+    }
+
+    const { data: newImage, error: insertError } = await this.supabase
+      .from("tool_images")
+      .insert({
+        tool_id: toolId,
+        storage_key: data.storage_key,
+        position: data.position,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      if (insertError.code === "23505") {
+        throw new ConflictError("An image already exists at this position.");
+      }
+      throw new SupabaseQueryError("Failed to create tool image.", insertError.code, insertError);
+    }
+
+    return newImage;
   }
 
   async searchActiveToolsNearProfile(userId: string, params: ToolSearchParams): Promise<ToolSearchPageDTO> {
