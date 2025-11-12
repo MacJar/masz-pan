@@ -1,0 +1,17 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EditToolView from "@/components/tools/edit/EditToolView";
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+---
+
+<Layout title="Edytuj narzędzie">
+  <main class="container py-8">
+    <h1 class="text-3xl font-bold mb-6">Edytuj narzędzie</h1>
+    <EditToolView client:load toolId={id} />
+  </main>
+</Layout>

@@ -8,7 +8,44 @@ import type {
   UpdateToolCommand,
   CursorPage,
   ToolStatus,
+  ToolWithImagesDTO,
 } from "@/types";
+
+export async function reorderToolImages(toolId: string, imageIds: string[]): Promise<ToolImageDTO[]> {
+  const response = await fetch(`/api/tools/${toolId}/images/order`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ imageIds }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to reorder tool images");
+  }
+  return response.json();
+}
+
+export async function archiveTool(toolId: string): Promise<{ archivedAt: string }> {
+  const response = await fetch(`/api/tools/${toolId}/archive`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to archive tool");
+  }
+  return response.json();
+}
+
+export async function getTool(toolId: string): Promise<ToolWithImagesDTO> {
+  const response = await fetch(`/api/tools/${toolId}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("Tool not found");
+    }
+    throw new Error("Failed to fetch tool");
+  }
+  return response.json();
+}
 
 export async function getMyTools(params: {
   status?: ToolStatus | 'all';

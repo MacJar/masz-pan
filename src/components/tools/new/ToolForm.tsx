@@ -1,30 +1,72 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { ToolFormViewModel } from "./NewTool.types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AIDescribeButton } from "./AIDescribeButton";
+import type { ToolWithImagesDTO, UpdateToolCommand } from "@/types";
+import { Button } from "@/components/ui/button";
+import { isEqual } from "lodash-es";
 
 interface ToolFormProps {
-  formData: Pick<ToolFormViewModel, "name" | "description" | "suggested_price_tokens">;
-  onFormChange: (field: keyof ToolFormViewModel, value: any) => void;
-  onGenerateDescription: () => Promise<void>;
-  isGeneratingDescription: boolean;
+  initialData?: ToolWithImagesDTO;
+  isSubmitting?: boolean;
+  onSubmit: (data: UpdateToolCommand) => void;
 }
 
-export function ToolForm({ formData, onFormChange, onGenerateDescription, isGeneratingDescription }: ToolFormProps) {
+export function ToolForm({ initialData, isSubmitting, onSubmit }: ToolFormProps) {
+  const [formData, setFormData] = useState<UpdateToolCommand>({
+    name: initialData?.name ?? "",
+    description: initialData?.description ?? "",
+    suggested_price_tokens: initialData?.suggested_price_tokens ?? 1,
+  });
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      const initialCommand: UpdateToolCommand = {
+        name: initialData.name,
+        description: initialData.description ?? "",
+        suggested_price_tokens: initialData.suggested_price_tokens ?? 1,
+      };
+      setFormData(initialCommand);
+      // Check for changes compared to the initial state on every data change
+      setIsDirty(!isEqual(initialCommand, formData));
+    }
+  }, [initialData, formData]);
+
+  const onFormChange = (
+    field: keyof UpdateToolCommand,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow empty input to clear the field, otherwise parse as integer
     const numericValue = value === "" ? "" : parseInt(value, 10);
 
     if (numericValue === "" || (numericValue >= 1 && numericValue <= 5)) {
-      onFormChange("suggested_price_tokens", numericValue);
+      onFormChange("suggested_price_tokens", numericValue as number);
     }
   };
 
+  const handleGenerateDescription = async () => {
+    // TODO: Implement description generation
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const isFormValid = formData.name.trim().length > 0 && formData.suggested_price_tokens >= 1;
+
+  // NOTE: This component is now controlled internally for form data,
+  // but submits the data via onSubmit prop.
+  // This is a refactoring from its original use in NewToolView.
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="name">Nazwa narzędzia</Label>
         <Input
@@ -42,7 +84,7 @@ export function ToolForm({ formData, onFormChange, onGenerateDescription, isGene
         <Label htmlFor="description">Opis</Label>
         <Textarea
           id="description"
-          value={formData.description}
+          value={formData.description ?? ""}
           onChange={(e) => onFormChange("description", e.target.value)}
           placeholder="Opisz swoje narzędzie, jego stan, do czego może służyć."
           rows={6}
@@ -68,6 +110,11 @@ export function ToolForm({ formData, onFormChange, onGenerateDescription, isGene
         />
         <p className="text-sm text-muted-foreground">Wybierz wartość od 1 do 5.</p>
       </div>
-    </div>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting || !isDirty || !isFormValid}>
+          {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
+        </Button>
+      </div>
+    </form>
   );
 }
