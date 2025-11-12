@@ -1,8 +1,21 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
 import type { CreateToolImageDto } from "../pages/api/tools/[id]/images.ts";
-import type { ToolImageDTO, ToolSearchPageDTO, ToolWithImagesDTO } from "../../types.ts";
+import type {
+  CreateToolImageUploadUrlCommand,
+  ToolImageDTO,
+  ToolImageUploadUrlDto,
+  ToolSearchPageDTO,
+  ToolWithImagesDTO,
+} from "../../types.ts";
 import { fetchProfileById } from "./profile.service.ts";
-import { ConflictError, ForbiddenError, NotFoundError, SupabaseQueryError } from "./errors.service.ts";
+import {
+  ConflictError,
+  ForbiddenError,
+  InternalServerError,
+  NotFoundError,
+  SupabaseQueryError,
+} from "./errors.service.ts";
+import mime from "mime";
 
 export interface ToolSearchParams {
   q: string;
@@ -32,25 +45,60 @@ export class MissingLocationError extends Error {
   }
 }
 
-export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NotFoundError";
-  }
-}
-
-export class ForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ForbiddenError";
-  }
-}
-
 export class ToolsService {
   private supabase: SupabaseClient;
 
   constructor(supabase: SupabaseClient) {
     this.supabase = supabase;
+  }
+
+  async createSignedImageUploadUrl(
+    toolId: string,
+    userId: string,
+    command: CreateToolImageUploadUrlCommand
+  ): Promise<ToolImageUploadUrlDto> {
+    const { data: tool, error: toolError } = await this.supabase
+      .from("tools")
+      .select("owner_id")
+      .eq("id", toolId)
+      .single();
+
+    if (toolError) {
+      if (toolError.code === "PGRST116") {
+        throw new NotFoundError("Tool not found");
+      }
+      throw new SupabaseQueryError("Failed to fetch tool by ID.", toolError.code, toolError);
+    }
+
+    if (tool.owner_id !== userId) {
+      throw new ForbiddenError("You do not have permission to upload images for this tool.");
+    }
+
+    const extension = mime.getExtension(command.content_type);
+    if (!extension) {
+      throw new ValidationError("Invalid content type provided.");
+    }
+
+    const fileId = crypto.randomUUID();
+    const storageKey = `tools/${toolId}/${fileId}.${extension}`;
+
+    const { data, error } = await this.supabase.storage
+      .from("tool_images")
+      .createSignedUploadUrl(storageKey, 60, {
+        upsert: true,
+      });
+
+    if (error) {
+      throw new InternalServerError(`Failed to create signed upload URL: ${error.message}`);
+    }
+
+    return {
+      upload_url: data.signedUrl,
+      storage_key: storageKey,
+      headers: {
+        "x-upsert": "true",
+      },
+    };
   }
 
   async getToolImagesForTool(toolId: string, currentUserId?: string) {

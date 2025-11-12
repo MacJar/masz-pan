@@ -1,4 +1,5 @@
 import type { Tables as Row, TablesInsert as Insert, TablesUpdate as Update, Enums } from "./db/database.types";
+import { z } from "zod";
 
 /**
  * Shared enums derived from DB
@@ -86,6 +87,29 @@ export type ToolSearchPageDTO = CursorPage<ToolSearchItemDTO>;
 // =====================
 // Tool Images & Storage
 // =====================
+
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+export const CreateToolImageUploadUrlCommand = z.object({
+  content_type: z
+    .string()
+    .refine((value) => ALLOWED_IMAGE_TYPES.includes(value), { message: "Unsupported image type" }),
+  size_bytes: z
+    .number()
+    .int()
+    .positive()
+    .max(MAX_IMAGE_SIZE_BYTES, { message: `Image size cannot exceed ${MAX_IMAGE_SIZE_MB}MB` }),
+});
+
+export type CreateToolImageUploadUrlCommand = z.infer<typeof CreateToolImageUploadUrlCommand>;
+
+export type ToolImageUploadUrlDto = {
+  upload_url: string;
+  headers: Record<string, string>;
+  storage_key: string;
+};
 
 export type ToolImageDTO = Row<"tool_images">;
 
