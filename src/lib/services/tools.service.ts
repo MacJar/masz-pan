@@ -136,7 +136,7 @@ export class ToolsService {
   async findToolWithImagesById(toolId: string): Promise<ToolWithImagesDTO | null> {
     const { data, error } = await this.supabase
       .from("tools")
-      .select("*, tool_images(*)")
+      .select("*, images:tool_images(*)")
       .eq("id", toolId)
       .order("position", { foreignTable: "tool_images", ascending: true })
       .single();

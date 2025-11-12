@@ -1,5 +1,6 @@
 import type { ToolImageDTO } from "@/types";
 import React from "react";
+import { getToolImagePublicUrl } from "@/lib/utils";
 
 interface ImageGalleryProps {
 	images: ToolImageDTO[];
@@ -25,7 +26,7 @@ export default function ImageGallery({ images, toolName }: ImageGalleryProps) {
 		<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 			<div className="md:col-span-1">
 				<img
-					src={`/api/storage/${primaryImage.storage_key}`}
+					src={getToolImagePublicUrl(primaryImage.storage_key)}
 					alt={`Główne zdjęcie narzędzia ${toolName}`}
 					className="h-full w-full rounded-lg object-cover"
 				/>
@@ -34,7 +35,7 @@ export default function ImageGallery({ images, toolName }: ImageGalleryProps) {
 				{secondaryImages.map((image) => (
 					<div key={image.storage_key}>
 						<img
-							src={`/api/storage/${image.storage_key}`}
+							src={getToolImagePublicUrl(image.storage_key)}
 							alt={`Zdjęcie narzędzia ${toolName} #${image.position}`}
 							className="h-full w-full rounded-lg object-cover"
 						/>
