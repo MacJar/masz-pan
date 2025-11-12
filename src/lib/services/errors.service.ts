@@ -52,6 +52,12 @@ export class ConflictError extends AppError {
   }
 }
 
+export class UnprocessableEntityError extends AppError {
+  constructor(message = "Unprocessable Entity") {
+    super(message, 422, "UNPROCESSABLE_ENTITY");
+  }
+}
+
 export class ToolHasActiveReservationsError extends ConflictError {
   constructor(message = "Tool has active reservations and cannot be archived.") {
     super(message);

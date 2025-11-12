@@ -18,6 +18,7 @@ import {
   NotFoundError,
   SupabaseQueryError,
   ToolHasActiveReservationsError,
+  UnprocessableEntityError,
 } from "./errors.service.ts";
 import mime from "mime";
 
@@ -392,6 +393,46 @@ export class ToolsService {
   private encodeCursor(obj: { lastDistance: number; lastId: string }): string {
     const json = JSON.stringify(obj);
     return Buffer.from(json, "utf8").toString("base64");
+  }
+
+  async publishTool(toolId: string, userId: string): Promise<ToolWithImagesDTO> {
+    const { data, error } = await this.supabase.rpc("publish_tool", {
+      tool_id_to_publish: toolId,
+    });
+
+    if (error) {
+      switch (error.code) {
+        case "PGRST001":
+          throw new NotFoundError("Tool not found");
+        case "PGRST002":
+          throw new ForbiddenError("You are not the owner of this tool.");
+        case "PGRST003":
+          throw new UnprocessableEntityError("Tool is not a draft and cannot be published.");
+        case "PGRST004":
+          throw new ConflictError("Tool must have at least one image to be published.");
+        default:
+          throw new SupabaseQueryError("Failed to publish tool.", error.code, error);
+      }
+    }
+
+    if (!data || data.length === 0) {
+      throw new InternalServerError("Publishing the tool failed to return the updated tool.");
+    }
+
+    const tool = data[0];
+
+    return {
+      id: tool.id,
+      owner_id: tool.owner_id,
+      name: tool.name,
+      description: tool.description,
+      suggested_price_tokens: tool.suggested_price_tokens,
+      status: tool.status,
+      created_at: tool.created_at,
+      updated_at: tool.updated_at,
+      archived_at: tool.archived_at,
+      images: tool.images ? (tool.images as ToolImageDTO[]) : [],
+    };
   }
 
   async archiveTool(toolId: string, userId: string): Promise<{ archivedAt: Date }> {
