@@ -100,13 +100,5 @@ export async function deleteToolImage(toolId: string, imageId: string): Promise<
 }
 
 export async function publishTool(toolId: string): Promise<ToolDTO> {
-  const response = await fetch(`/api/tools/${toolId}/publish`, {
-    method: "POST",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to publish tool");
-  }
-
-  return response.json();
+  return updateDraftTool(toolId, { status: "active" });
 }

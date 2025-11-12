@@ -57,7 +57,8 @@ export function apiSuccess<T>(status: 200 | 201, data: T): Response {
 
 export function apiError(error: unknown): Response {
   if (error instanceof AppError) {
-    return jsonError(error.status, error.code, error.message);
+    const details = (error as any).details;
+    return jsonError(error.status, error.code, error.message, details);
   }
 
   // TODO: Add logging for unexpected errors

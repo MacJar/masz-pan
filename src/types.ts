@@ -72,7 +72,16 @@ export type ToolDTO = Omit<Row<"tools">, "search_name_tsv">;
 
 export type CreateToolCommand = Pick<Insert<"tools">, "name" | "description" | "suggested_price_tokens">;
 
-export type UpdateToolCommand = Partial<Pick<Update<"tools">, "name" | "description" | "suggested_price_tokens">>;
+export const UpdateToolCommandSchema = z
+  .object({
+    name: z.string(),
+    description: z.string(),
+    suggested_price_tokens: z.number().int().positive(),
+    status: z.enum(["draft", "active"]),
+  })
+  .partial();
+
+export type UpdateToolCommand = z.infer<typeof UpdateToolCommandSchema>;
 
 export type ToolArchiveResultDTO = ArchiveResultDTO;
 
@@ -113,7 +122,11 @@ export type ToolImageUploadUrlDto = {
 
 export type ToolImageDTO = Row<"tool_images">;
 
-export type CreateToolImageCommand = Pick<Insert<"tool_images">, "storage_key" | "position">;
+export const CreateToolImageCommandSchema = z.object({
+  storage_key: z.string(),
+  position: z.number().int(),
+});
+export type CreateToolImageCommand = z.infer<typeof CreateToolImageCommandSchema>;
 
 export interface CreateUploadUrlCommand {
   content_type: string;

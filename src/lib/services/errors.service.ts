@@ -21,38 +21,40 @@ export class AppError extends Error {
 
 // 4xx Client Errors
 export class BadRequestError extends AppError {
-  constructor(message: string = "Bad Request") {
+  public readonly details?: unknown;
+  constructor(message = "Bad Request", details?: unknown) {
     super(message, 400, "BAD_REQUEST");
+    this.details = details;
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message: string = "Unauthorized") {
+  constructor(message = "Unauthorized") {
     super(message, 401, "UNAUTHORIZED");
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message: string = "Forbidden") {
+  constructor(message = "Forbidden") {
     super(message, 403, "FORBIDDEN");
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string = "Not Found") {
+  constructor(message = "Not Found") {
     super(message, 404, "NOT_FOUND");
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string = "Conflict") {
+  constructor(message = "Conflict") {
     super(message, 409, "CONFLICT");
   }
 }
 
 // 5xx Server Errors
 export class InternalServerError extends AppError {
-  constructor(message: string = "Internal Server Error") {
+  constructor(message = "Internal Server Error") {
     super(message, 500, "INTERNAL_SERVER_ERROR");
   }
 }

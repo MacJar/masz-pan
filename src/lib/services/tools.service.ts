@@ -1,11 +1,12 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { CreateToolImageDto } from "../pages/api/tools/[id]/images.ts";
 import type {
+  CreateToolImageCommand,
   CreateToolImageUploadUrlCommand,
   ToolImageDTO,
   ToolImageUploadUrlDto,
   ToolSearchPageDTO,
   ToolWithImagesDTO,
+  UpdateToolCommand,
 } from "../../types.ts";
 import { fetchProfileById } from "./profile.service.ts";
 import {
@@ -152,7 +153,39 @@ export class ToolsService {
     return data as ToolWithImagesDTO | null;
   }
 
-  async createToolImage(toolId: string, ownerId: string, data: CreateToolImageDto): Promise<ToolImageDTO> {
+  async updateTool(toolId: string, ownerId: string, command: UpdateToolCommand) {
+    const { data: tool, error: toolError } = await this.supabase
+      .from("tools")
+      .select("owner_id")
+      .eq("id", toolId)
+      .single();
+
+    if (toolError) {
+      if (toolError.code === "PGRST116") {
+        throw new NotFoundError("Tool not found");
+      }
+      throw new SupabaseQueryError("Failed to fetch tool.", toolError.code, toolError);
+    }
+
+    if (tool.owner_id !== ownerId) {
+      throw new ForbiddenError("You are not the owner of this tool.");
+    }
+
+    const { data: updatedTool, error: updateError } = await this.supabase
+      .from("tools")
+      .update(command)
+      .eq("id", toolId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new SupabaseQueryError("Failed to update tool.", updateError.code, updateError);
+    }
+
+    return updatedTool;
+  }
+
+  async createToolImage(toolId: string, ownerId: string, data: CreateToolImageCommand): Promise<ToolImageDTO> {
     const { data: tool, error: toolError } = await this.supabase
       .from("tools")
       .select("owner_id")
@@ -227,7 +260,7 @@ export class ToolsService {
       throw new NotFoundError("Image does not belong to the specified tool.");
     }
 
-    const { error: storageError } = await this.supabase.storage.from("tool-images").remove([image.storage_key]);
+    const { error: storageError } = await this.supabase.storage.from("tool_images").remove([image.storage_key]);
 
     if (storageError) {
       // It's better to log this error but not fail the whole operation,
@@ -241,6 +274,25 @@ export class ToolsService {
     if (dbError) {
       throw new SupabaseQueryError("Failed to delete tool image from database.", dbError.code, dbError);
     }
+  }
+
+  async createDraftTool(ownerId: string) {
+    const { data: newTool, error: insertError } = await this.supabase
+      .from("tools")
+      .insert({
+        owner_id: ownerId,
+        status: "draft",
+        name: "", // Provide an empty string to satisfy the NOT NULL constraint
+        suggested_price_tokens: 1, // Provide a default value
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      throw new SupabaseQueryError("Failed to create draft tool.", insertError.code, insertError);
+    }
+
+    return newTool;
   }
 
   async searchActiveToolsNearProfile(userId: string, params: ToolSearchParams): Promise<ToolSearchPageDTO> {

@@ -166,7 +166,7 @@ export function useNewToolManager() {
     }
 
     saveDraft();
-  }, [debouncedName, debouncedDescription, debouncedPrice, state.toolId, state.status]);
+  }, [debouncedName, debouncedDescription, debouncedPrice, state.toolId]);
 
   const handleFormChange = (field: string, value: any) => {
     dispatch({ type: "FORM_CHANGE", payload: { field, value } });

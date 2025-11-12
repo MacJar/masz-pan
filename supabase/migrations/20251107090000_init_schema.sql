@@ -18,6 +18,22 @@ create extension if not exists citext with schema public;
 create extension if not exists pg_trgm with schema public;
 
 -- -----------------------------------------------------------------------------
+-- storage buckets
+-- -----------------------------------------------------------------------------
+-- tool_images bucket (publicly accessible)
+insert into storage.buckets (id, name, public)
+values ('tool_images', 'tool_images', true)
+on conflict (id) do nothing;
+
+-- TODO: Restrict this policy when authentication is implemented.
+-- For now, allow all public users to upload to the tool_images bucket
+-- to facilitate development without a full auth flow.
+create policy "Allow public uploads to tool_images"
+on storage.objects for insert to public with check (
+  bucket_id = 'tool_images'
+);
+
+-- -----------------------------------------------------------------------------
 -- enum types
 -- -----------------------------------------------------------------------------
 do $$ begin
