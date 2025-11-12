@@ -2,9 +2,11 @@ import type { SupabaseClient } from "../../db/supabase.client.ts";
 import type {
   CreateToolImageCommand,
   CreateToolImageUploadUrlCommand,
+  ToolDTO,
   ToolImageDTO,
   ToolImageUploadUrlDto,
   ToolSearchPageDTO,
+  ToolStatus,
   ToolWithImagesDTO,
   UpdateToolCommand,
 } from "../../types.ts";
@@ -17,6 +19,13 @@ import {
   SupabaseQueryError,
 } from "./errors.service.ts";
 import mime from "mime";
+
+export interface GetToolsByOwnerParams {
+  ownerId: string;
+  status?: ToolStatus | "all";
+  limit: number;
+  cursor?: string;
+}
 
 export interface ToolSearchParams {
   q: string;
@@ -53,6 +62,36 @@ export class ToolsService {
     this.supabase = supabase;
   }
 
+  async getToolsByOwner(params: GetToolsByOwnerParams) {
+    let query = this.supabase.from("tools").select("*").eq("owner_id", params.ownerId).limit(params.limit);
+
+    if (params.status && params.status !== "all") {
+      query = query.eq("status", params.status);
+    }
+
+    if (params.cursor) {
+      // For cursor-based pagination, we need a stable sort order.
+      // We'll sort by `created_at` descending as a primary key.
+      // The cursor will be the `created_at` value of the last item.
+      query = query.lt("created_at", params.cursor);
+    }
+
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new SupabaseQueryError("Failed to fetch tools by owner", error.code, error);
+    }
+
+    const next_cursor = data.length === params.limit ? data[data.length - 1].created_at : null;
+
+    return {
+      items: data as ToolDTO[],
+      next_cursor,
+    };
+  }
+
   async createSignedImageUploadUrl(
     toolId: string,
     userId: string,
@@ -83,11 +122,9 @@ export class ToolsService {
     const fileId = crypto.randomUUID();
     const storageKey = `tools/${toolId}/${fileId}.${extension}`;
 
-    const { data, error } = await this.supabase.storage
-      .from("tool_images")
-      .createSignedUploadUrl(storageKey, 60, {
-        upsert: true,
-      });
+    const { data, error } = await this.supabase.storage.from("tool_images").createSignedUploadUrl(storageKey, 60, {
+      upsert: true,
+    });
 
     if (error) {
       throw new InternalServerError(`Failed to create signed upload URL: ${error.message}`);

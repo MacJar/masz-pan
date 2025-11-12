@@ -1,0 +1,17 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MyToolsView from "@/components/tools/my/MyToolsView";
+
+// const { session } = Astro.locals;
+
+// if (!session) {
+//   return Astro.redirect("/signin"); // TODO: add signin page
+// }
+---
+
+<Layout title="Moje narzędzia">
+  <main class="container py-8">
+    <h1 class="text-3xl font-bold mb-6">Moje narzędzia</h1>
+    <MyToolsView client:load />
+  </main>
+</Layout>

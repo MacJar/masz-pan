@@ -77,7 +77,7 @@ export const UpdateToolCommandSchema = z
     name: z.string(),
     description: z.string(),
     suggested_price_tokens: z.number().int().positive(),
-    status: z.enum(["draft", "active"]),
+    status: z.enum(["draft", "active", "archived", "inactive"]),
   })
   .partial();
 

@@ -6,7 +6,49 @@ import type {
   CreateToolImageCommand,
   ToolImageDTO,
   UpdateToolCommand,
+  CursorPage,
+  ToolStatus,
 } from "@/types";
+
+export async function getMyTools(params: {
+  status?: ToolStatus | 'all';
+  limit?: number;
+  cursor?: string;
+}): Promise<CursorPage<ToolDTO>> {
+  const query = new URLSearchParams();
+  query.set('owner_id', 'me');
+  if (params.status && params.status !== 'all') {
+    query.set('status', params.status);
+  }
+  if (params.limit) {
+    query.set('limit', String(params.limit));
+  }
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
+
+  const response = await fetch(`/api/tools?${query.toString()}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user tools');
+  }
+  return response.json();
+}
+
+export async function updateTool(toolId: string, command: UpdateToolCommand): Promise<ToolDTO> {
+  const response = await fetch(`/api/tools/${toolId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update tool');
+  }
+  return response.json();
+}
 
 export async function createDraftTool(): Promise<ToolDTO> {
   const response = await fetch("/api/tools", {
@@ -26,6 +68,9 @@ export async function createDraftTool(): Promise<ToolDTO> {
   return response.json();
 }
 
+/**
+ * @deprecated Use updateTool instead.
+ */
 export async function updateDraftTool(toolId: string, command: UpdateToolCommand): Promise<ToolDTO> {
   const response = await fetch(`/api/tools/${toolId}`, {
     method: "PATCH",
@@ -99,6 +144,9 @@ export async function deleteToolImage(toolId: string, imageId: string): Promise<
   }
 }
 
+/**
+ * @deprecated Use updateTool(toolId, { status: "active" }) instead.
+ */
 export async function publishTool(toolId: string): Promise<ToolDTO> {
   return updateDraftTool(toolId, { status: "active" });
 }
