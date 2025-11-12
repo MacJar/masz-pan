@@ -52,6 +52,13 @@ export class ConflictError extends AppError {
   }
 }
 
+export class ToolHasActiveReservationsError extends ConflictError {
+  constructor(message = "Tool has active reservations and cannot be archived.") {
+    super(message);
+    this.code = "TOOL_HAS_ACTIVE_RESERVATIONS";
+  }
+}
+
 // 5xx Server Errors
 export class InternalServerError extends AppError {
   constructor(message = "Internal Server Error") {

@@ -83,7 +83,10 @@ export const UpdateToolCommandSchema = z
 
 export type UpdateToolCommand = z.infer<typeof UpdateToolCommandSchema>;
 
-export type ToolArchiveResultDTO = ArchiveResultDTO;
+export interface ToolArchivedResponseDto {
+  archived: true;
+  archivedAt: string; // Data w formacie ISO 8601
+}
 
 export type ToolListItemDTO = Pick<ToolDTO, "id" | "name" | "status">;
 export type ToolListPageDTO = CursorPage<ToolListItemDTO>;
@@ -114,11 +117,11 @@ export const CreateToolImageUploadUrlCommand = z.object({
 
 export type CreateToolImageUploadUrlCommand = z.infer<typeof CreateToolImageUploadUrlCommand>;
 
-export type ToolImageUploadUrlDto = {
+export interface ToolImageUploadUrlDto {
   upload_url: string;
   headers: Record<string, string>;
   storage_key: string;
-};
+}
 
 export type ToolImageDTO = Row<"tool_images">;
 

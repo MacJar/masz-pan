@@ -17,6 +17,7 @@ import {
   InternalServerError,
   NotFoundError,
   SupabaseQueryError,
+  ToolHasActiveReservationsError,
 } from "./errors.service.ts";
 import mime from "mime";
 
@@ -391,6 +392,57 @@ export class ToolsService {
   private encodeCursor(obj: { lastDistance: number; lastId: string }): string {
     const json = JSON.stringify(obj);
     return Buffer.from(json, "utf8").toString("base64");
+  }
+
+  async archiveTool(toolId: string, userId: string): Promise<{ archivedAt: Date }> {
+    const { data: tool, error: toolError } = await this.supabase
+      .from("tools")
+      .select("status, owner_id, archived_at")
+      .eq("id", toolId)
+      .single();
+
+    if (toolError) {
+      if (toolError.code === "PGRST116") {
+        throw new NotFoundError("Tool not found");
+      }
+      throw new SupabaseQueryError("Failed to fetch tool for archiving.", toolError.code, toolError);
+    }
+
+    if (tool.owner_id !== userId) {
+      throw new ForbiddenError("You are not the owner of this tool.");
+    }
+
+    if (tool.status === "archived" && tool.archived_at) {
+      return { archivedAt: new Date(tool.archived_at) };
+    }
+
+    const { data: rpcData, error: rpcError } = await this.supabase
+      .rpc("archive_tool", {
+        p_tool_id: toolId,
+        p_user_id: userId,
+      })
+      .single();
+
+    if (rpcError) {
+      throw new SupabaseQueryError("Failed to execute archive_tool RPC.", rpcError.code, rpcError);
+    }
+
+    if (!rpcData.success) {
+      switch (rpcData.code) {
+        case "FORBIDDEN":
+          throw new ForbiddenError(rpcData.message);
+        case "TOOL_HAS_ACTIVE_RESERVATIONS":
+          throw new ToolHasActiveReservationsError(rpcData.message);
+        default:
+          throw new InternalServerError(`RPC call failed with code: ${rpcData.code} and message: ${rpcData.message}`);
+      }
+    }
+
+    if (!rpcData.archived_at) {
+      throw new InternalServerError("RPC call succeeded but did not return an archived_at date.");
+    }
+
+    return { archivedAt: new Date(rpcData.archived_at) };
   }
 }
 

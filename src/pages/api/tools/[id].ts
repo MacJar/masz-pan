@@ -4,6 +4,17 @@ import { apiError, apiSuccess } from "../../../lib/api/responses";
 import { ToolsService } from "../../../lib/services/tools.service";
 import { BadRequestError } from "../../../lib/services/errors.service";
 import { UpdateToolCommandSchema } from "../../../types";
+import { supabase } from "../../../db/supabase.client";
+import {
+  AppError,
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+  ToolHasActiveReservationsError,
+  UnauthorizedError,
+} from "../../../lib/services/errors.service";
+import type { ToolArchivedResponseDto } from "../../../types";
+import { createApiErrorResponse, createApiSuccessResponse } from "../../../lib/api/responses";
 
 export const prerender = false;
 
@@ -63,5 +74,37 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     return apiSuccess(200, updatedTool);
   } catch (error) {
     return apiError(error);
+  }
+};
+
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  const session = locals.session;
+  if (!session) {
+    return createApiErrorResponse(new UnauthorizedError("No active session found."));
+  }
+
+  const result = IdParamsSchema.safeParse(params);
+  if (!result.success) {
+    return createApiErrorResponse(new BadRequestError("Invalid tool ID provided.", result.error));
+  }
+  const { id: toolId } = result.data;
+  const { user } = session;
+
+  try {
+    const toolsService = new ToolsService(supabase);
+    const { archivedAt } = await toolsService.archiveTool(toolId, user.id);
+
+    const response: ToolArchivedResponseDto = {
+      archived: true,
+      archivedAt: archivedAt.toISOString(),
+    };
+
+    return createApiSuccessResponse(response);
+  } catch (err: unknown) {
+    if (err instanceof AppError) {
+      return createApiErrorResponse(err);
+    }
+    console.error("Unexpected error while archiving tool:", err);
+    return createApiErrorResponse(new AppError("An unexpected error occurred.", 500, "INTERNAL_ERROR"));
   }
 };
