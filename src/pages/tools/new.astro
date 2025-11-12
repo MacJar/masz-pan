@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import NewToolView from "@/components/tools/new/NewToolView";
+---
+
+<Layout title="Dodaj nowe narzędzie">
+  <main class="container py-8">
+    <h1 class="text-3xl font-bold mb-6">Dodaj nowe narzędzie</h1>
+    <NewToolView client:load />
+  </main>
+</Layout>
