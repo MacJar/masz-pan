@@ -80,13 +80,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // 2. Handle authenticated users with incomplete profiles
   if (session) {
     // Paths accessible even with an incomplete profile
-    const allowedPaths = ["/profile", "/api/profile"];
+    const allowedPaths = ["/profile/edit", "/api/profile"];
     const isAsset = /\.(gif|jpeg|jpg|png|svg|webp|js|css|woff|woff2|ttf|eot)$/i.test(pathname);
 
     if (!allowedPaths.some((p) => pathname.startsWith(p)) && !isAsset) {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("username, rodo_consent")
+        .select("is_complete")
         .eq("id", session.user.id)
         .single();
         
@@ -94,10 +94,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       if (error && error.code !== 'PGRST116') { // PGRST116 = 0 rows, which is a valid case
         console.error("Middleware profile fetch error:", error.message);
       } else {
-        const isProfileComplete = profile && profile.username && profile.rodo_consent === true;
+        const isProfileComplete = profile?.is_complete ?? false;
   
         if (!isProfileComplete) {
-          return context.redirect("/profile", 303);
+          return context.redirect("/profile/edit", 303);
         }
       }
     }

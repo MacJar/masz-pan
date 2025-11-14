@@ -1,12 +1,12 @@
 import { z } from "zod";
-import type { ProfileDTO, ProfileUpsertCommand, PublicProfileDTO } from "@/types";
+import type { Profile, ProfileUpdateDto, PublicProfileDTO } from "@/types";
 
 /**
  * Fetches the current user's profile.
  * Handles a 404 response by returning null, indicating a new user who hasn't created a profile yet.
- * @returns {Promise<ProfileDTO | null>} The user profile or null if not found.
+ * @returns {Promise<Profile | null>} The user profile or null if not found.
  */
-export async function getProfile(): Promise<ProfileDTO | null> {
+export async function getProfile(): Promise<Profile | null> {
   const response = await fetch("/api/profile");
 
   if (response.status === 404) {
@@ -14,18 +14,22 @@ export async function getProfile(): Promise<ProfileDTO | null> {
   }
 
   if (!response.ok) {
-    throw new Error("Failed to fetch profile");
+    //
+    const errorData = await response.json().catch(() => ({ message: "Failed to fetch profile" }));
+    const error = new Error(errorData.message || "Failed to fetch profile");
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();
 }
 
 /**
- * Creates or updates a user's profile.
- * @param {ProfileUpsertCommand} command - The profile data to save.
- * @returns {Promise<ProfileDTO>} The updated user profile.
+ * Updates a user's profile.
+ * @param {ProfileUpdateDto} command - The profile data to save.
+ * @returns {Promise<Profile>} The updated user profile.
  */
-export async function upsertProfile(command: ProfileUpsertCommand): Promise<ProfileDTO> {
+export async function updateProfile(command: ProfileUpdateDto): Promise<Profile> {
   const response = await fetch("/api/profile", {
     method: "PUT",
     headers: {
@@ -35,9 +39,10 @@ export async function upsertProfile(command: ProfileUpsertCommand): Promise<Prof
   });
 
   if (!response.ok) {
-    // We expect the server to send back specific error information
-    // which will be handled by the caller (e.g., the useProfileManager hook).
-    throw response;
+    const errorData = await response.json().catch(() => ({ message: "An unexpected error occurred" }));
+    const error = new Error(errorData.error || "An unexpected error occurred");
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();

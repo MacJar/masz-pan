@@ -320,3 +320,23 @@ export interface PublicProfileViewModel {
   ratingsCount: number;
   activeTools: ToolSummaryViewModel[];
 }
+
+export interface ProfileUpdateDto {
+  username: string;
+  location_text: string;
+  rodo_consent: boolean;
+}
+
+export type LocationStatus = "IDLE" | "VERIFIED" | "ERROR";
+
+export interface ProfileEditViewModel {
+  username: string;
+  location_text: string;
+  rodo_consent: boolean;
+  errors: {
+    username?: string;
+    location_text?: string;
+    form?: string;
+  };
+  locationStatus: LocationStatus;
+}

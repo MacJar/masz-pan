@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ProfileEditView from "@/components/profile/ProfileEditView.tsx";
+---
+
+<Layout title="Edytuj profil / Uzupełnij dane">
+  <main class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-3xl font-bold mb-2">Uzupełnij swoje dane</h1>
+      <p class="text-muted-foreground mb-6">
+        Aby w pełni korzystać z serwisu, potrzebujemy jeszcze kilku informacji o Tobie.
+      </p>
+      <ProfileEditView client:load />
+    </div>
+  </main>
+</Layout>
