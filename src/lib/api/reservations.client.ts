@@ -1,11 +1,5 @@
 import type { ReservationWithToolDTO } from "@/types";
 import type { ReservationStatus } from "@/types";
-import {
-  cancelReservationRequest,
-  getMyReservations,
-  transitionReservation,
-  getContactsForReservation as apiGetContacts,
-} from "@/lib/api/reservations.client";
 import { toast } from "sonner";
 import type { ReservationContactsDto } from "@/types";
 
@@ -51,11 +45,15 @@ export const cancelReservationRequest = async (id: string, cancelled_reason: str
 };
 
 export const getContactsForReservation = async (id: string): Promise<ReservationContactsDto> => {
-    try {
-        const contacts = await apiGetContacts(id);
-        return contacts;
-    } catch (error) {
-        toast.error("Nie udało się pobrać danych kontaktowych.");
-        throw error;
+  try {
+    const response = await fetch(`/api/reservations/${id}/contact`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || "Failed to get contacts for reservation");
     }
-}
+    return response.json();
+  } catch (error) {
+    toast.error("Nie udało się pobrać danych kontaktowych.");
+    throw error;
+  }
+};

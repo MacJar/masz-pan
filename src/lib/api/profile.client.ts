@@ -29,7 +29,7 @@ export async function getProfile(): Promise<Profile | null> {
  * @param {ProfileUpdateDto} command - The profile data to save.
  * @returns {Promise<Profile>} The updated user profile.
  */
-export async function updateProfile(command: ProfileUpdateDto): Promise<Profile> {
+export async function upsertProfile(command: ProfileUpdateDto): Promise<Profile> {
   const response = await fetch("/api/profile", {
     method: "PUT",
     headers: {

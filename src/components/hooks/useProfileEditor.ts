@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { getProfile, updateProfile } from "@/lib/api/profile.client";
+import { getProfile, upsertProfile } from "@/lib/api/profile.client";
 import type { Profile, ProfileEditViewModel, ProfileUpdateDto } from "@/types";
 
 const INITIAL_FORM_DATA: ProfileEditViewModel = {
@@ -68,7 +68,7 @@ export function useProfileEditor() {
     const updateDto: ProfileUpdateDto = { username, location_text, rodo_consent };
 
     try {
-      const updatedProfile = await updateProfile(updateDto);
+      const updatedProfile = await upsertProfile(updateDto);
       toast.success("Profil został zaktualizowany!");
       
       // Redirect to profile page after successful submission

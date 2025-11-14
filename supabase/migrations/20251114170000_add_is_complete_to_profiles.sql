@@ -1,0 +1,2 @@
+ALTER TABLE profiles
+ADD COLUMN is_complete BOOLEAN DEFAULT FALSE;

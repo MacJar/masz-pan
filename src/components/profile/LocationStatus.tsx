@@ -1,18 +1,29 @@
 import React from "react";
-import { CheckCircle, XCircle, Hourglass } from "lucide-react";
-import type { LocationStatus as LocationStatusType } from "@/types";
+import { CheckCircle, XCircle, Hourglass, HelpCircle } from "lucide-react";
+
+// This type is defined in ProfileView.tsx, maybe it should be in a shared types file?
+// For now, let's define it here to match the possible values.
+export type GeocodingStatus = "NOT_SET" | "PENDING" | "SUCCESS" | "ERROR";
 
 interface LocationStatusProps {
-  status: LocationStatusType;
+  status: GeocodingStatus;
 }
 
-const statusConfig = {
-  IDLE: {
-    Icon: Hourglass,
-    color: "text-gray-500",
-    text: "Oczekuje",
+const statusConfig: Record<
+  GeocodingStatus,
+  { Icon: React.ElementType; color: string; text: string }
+> = {
+  NOT_SET: {
+    Icon: HelpCircle,
+    color: "text-muted-foreground",
+    text: "Nie ustawiono",
   },
-  VERIFIED: {
+  PENDING: {
+    Icon: Hourglass,
+    color: "text-blue-500",
+    text: "Oczekuje na weryfikację",
+  },
+  SUCCESS: {
     Icon: CheckCircle,
     color: "text-green-500",
     text: "Zweryfikowano",
@@ -20,12 +31,19 @@ const statusConfig = {
   ERROR: {
     Icon: XCircle,
     color: "text-red-500",
-    text: "Błąd",
+    text: "Błąd weryfikacji",
   },
 };
 
 export function LocationStatus({ status }: LocationStatusProps) {
-  const { Icon, color, text } = statusConfig[status];
+  const config = statusConfig[status];
+
+  if (!config) {
+    // Fallback for any unexpected status
+    return null;
+  }
+
+  const { Icon, color, text } = config;
 
   return (
     <div className={`flex items-center gap-1.5 text-sm ${color}`}>

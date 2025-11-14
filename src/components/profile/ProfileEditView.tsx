@@ -27,10 +27,11 @@ export function ProfileEditView() {
     <>
       <Toaster position="top-center" richColors />
       <ProfileForm
-        formData={formData}
+        profile={formData}
         isSubmitting={isSubmitting}
-        onFieldChange={handleFieldChange}
         onSubmit={handleSubmit}
+        fieldErrors={formData.errors}
+        onClearFieldErrors={(fieldName) => handleFieldChange(fieldName, formData[fieldName as keyof typeof formData])}
       />
     </>
   );
