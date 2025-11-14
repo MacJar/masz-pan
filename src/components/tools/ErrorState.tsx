@@ -1,39 +1,25 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 
-export interface ErrorStateProps {
-  errorCode: string;
-  details?: unknown;
-  onRetry(): void;
+interface ErrorStateProps {
+    message: string;
+    cta?: React.ReactNode;
 }
 
-function getMessage(code: string): string {
-  switch (code) {
-    case "auth_required":
-      return "Musisz być zalogowany, aby wyszukiwać narzędzia.";
-    case "profile_location_missing":
-      return "Uzupełnij lokalizację profilu, aby wyszukiwać w pobliżu.";
-    case "validation_error":
-      return "Nieprawidłowe zapytanie wyszukiwania.";
-    case "internal_error":
-    default:
-      return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";
-  }
+const ErrorState: React.FC<ErrorStateProps> = ({ message, cta }) => {
+    return (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            <div className="mb-4 text-2xl font-semibold">😕</div>
+            <h3 className="text-xl font-semibold tracking-tight">
+                Coś poszło nie tak
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {message || "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."}
+            </p>
+            {cta && <div className="mt-6">{cta}</div>}
+        </div>
+    );
 }
 
-export default function ErrorState(props: ErrorStateProps): JSX.Element {
-  const { errorCode, onRetry } = props;
-  const message = getMessage(errorCode);
-  return (
-    <div className="rounded-md border border-red-300 bg-red-50 p-4 text-red-950">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm">{message}</p>
-        <Button variant="outline" onClick={onRetry}>
-          Spróbuj ponownie
-        </Button>
-      </div>
-    </div>
-  );
-}
+export default ErrorState;
 
 
