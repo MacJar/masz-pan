@@ -159,9 +159,8 @@ export type ReservationWithToolDTO = ReservationDTO & {
   tool?: Pick<ToolDTO, "id" | "name" | "owner_id" | "suggested_price_tokens" | "status">;
 };
 
-export interface ReservationTransitionCommand {
-  new_status: ReservationStatus;
-  price_tokens?: number;
+export interface ReservationTransitionResponseDto {
+  reservation: ReservationDTO;
 }
 
 export interface ReservationLedgerEffectsDTO {
@@ -174,9 +173,41 @@ export interface ReservationTransitionResultDTO {
   ledger: ReservationLedgerEffectsDTO;
 }
 
-export interface ReservationContactsDTO {
+/**
+ * Podstawowe, publiczne informacje o narzędziu.
+ */
+export interface ToolSummaryDto {
+  id: string;
+  name: string;
+  mainImageUrl?: string;
+}
+
+/**
+ * Szczegółowe informacje o rezerwacji zwracane przez endpoint.
+ */
+export interface ReservationDetailsDto {
+  id: string;
+  status: ReservationStatus;
+  agreedPriceTokens: number | null;
+  tool: ToolSummaryDto;
+  ownerId: string;
+  borrowerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReservationContactsDto {
   owner_email: string;
   borrower_email: string;
+}
+
+export interface Reservation {
+  id: string;
+  status: "requested" | "owner_accepted" | "borrower_confirmed" | "picked_up" | "returned" | "cancelled" | "rejected";
+  tool_id: string;
+  owner_id: string;
+  borrower_id: string;
+  created_at: string;
 }
 
 // =====================
