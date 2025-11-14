@@ -256,9 +256,7 @@ export interface RescueClaimResultDTO {
 // Ratings
 // =====================
 
-export type RatingDTO = Row<"ratings">;
-
-export type CreateRatingCommand = Pick<Insert<"ratings">, "reservation_id" | "stars">;
+export type Rating = Row<"ratings">;
 
 export type RatingSummaryDTO = Pick<Row<"rating_stats">, "rated_user_id" | "avg_stars" | "ratings_count">;
 
