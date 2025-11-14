@@ -16,13 +16,11 @@ declare global {
 interface ImportMetaEnv {
   readonly SUPABASE_URL: string;
   readonly SUPABASE_KEY: string;
-  readonly OPENROUTER_API_KEY: string;
-  // TODO: Remove this when we have a proper auth system
-  readonly AUTH_BYPASS: string; // 'true' to bypass Supabase Auth on server
+  readonly SUPABASE_SERVICE_ROLE_KEY: string;
+  readonly GOOGLE_MAPS_API_KEY: string;
+  readonly OPENAI_API_KEY: string;
+  readonly AUTH_BYPASS: string; // "true" or "false"
   readonly AUTH_BYPASS_USER_ID: string; // mock user id when bypassing
-  readonly SUPABASE_SERVICE_ROLE_KEY: string; // optional: enables RLS-bypassing server writes (server-only)
-  readonly GEOCODING_URL: string; // server-only: Edge Function URL
-  readonly GEOCODING_KEY: string; // server-only: Edge Function secret
 }
 
 interface ImportMeta {

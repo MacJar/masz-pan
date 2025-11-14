@@ -1,5 +1,7 @@
 import { z } from "zod";
 import type { ProfileGeocodeResultDTO } from "../../types.ts";
+import { BadRequestError, NotFoundError, SupabaseQueryError, UnprocessableEntityError } from "./errors.service.ts";
+import type { SupabaseClient } from "../db/supabase.client.ts";
 
 const GEOCODE_TIMEOUT_MS = 3000;
 
@@ -73,4 +75,38 @@ export async function geocodeLocation(query: string): Promise<ProfileGeocodeResu
   }
 }
 
+export async function geocodeAndSaveForProfile(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<ProfileGeocodeResultDTO> {
+  const { data: profile, error } = await supabase.from("profiles").select().eq("id", userId).single();
 
+  if (error) {
+    throw new SupabaseQueryError("Failed to fetch profile", error.code, error);
+  }
+
+  if (!profile) {
+    throw new NotFoundError("Profile not found");
+  }
+
+  const { location_text } = profile;
+  if (!location_text || location_text.trim().length === 0) {
+    throw new BadRequestError("Profile location_text is empty");
+  }
+
+  const geocoded = await geocodeLocation(location_text);
+  if (!geocoded) {
+    throw new UnprocessableEntityError("Could not geocode location_text");
+  }
+
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({ location_geog: geocoded.location_geog })
+    .eq("id", userId);
+
+  if (updateError) {
+    throw new SupabaseQueryError("Failed to update profile", updateError.code, updateError);
+  }
+
+  return geocoded;
+}

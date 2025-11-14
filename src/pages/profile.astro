@@ -1,0 +1,13 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { ProfileView } from "@/components/profile/ProfileView";
+---
+
+<Layout title="Mój profil">
+  <main class="container mx-auto py-8 px-4">
+    <h1 class="text-3xl font-bold mb-6">Mój profil</h1>
+    <div id="profile-view-root">
+      <ProfileView client:load />
+    </div>
+  </main>
+</Layout>
