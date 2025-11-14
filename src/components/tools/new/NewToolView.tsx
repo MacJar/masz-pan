@@ -40,10 +40,6 @@ export function NewToolView() {
         <ToolForm
           formData={state}
           onFormChange={handleFormChange}
-          onGenerateDescription={async () => {
-            console.log("Generating description...");
-          }}
-          isGeneratingDescription={false}
         />
       </div>
       <div className="space-y-8">

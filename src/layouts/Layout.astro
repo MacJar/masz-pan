@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { Toaster } from "@/components/ui/sonner";
+import Header from "@/components/Header.astro";
 
 interface Props {
   title?: string;
@@ -18,8 +19,11 @@ const { title = "10x Astro Starter" } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body>
-    <slot />
+  <body class="flex min-h-screen w-full flex-col">
+    <Header />
+    <main class="container mx-auto flex-1 p-4">
+      <slot />
+    </main>
     <Toaster />
   </body>
 </html>
