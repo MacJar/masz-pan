@@ -1,5 +1,6 @@
 import type { Tables as Row, TablesInsert as Insert, TablesUpdate as Update, Enums } from "./db/database.types";
 import { z } from "zod";
+import { LedgerKindSchema } from "./lib/schemas/token.schema";
 
 /**
  * Shared enums derived from DB
@@ -210,27 +211,39 @@ export interface Reservation {
   created_at: string;
 }
 
+export interface ReservationWithDetails extends Reservation {
+  property: Property;
+}
+
+export interface AwardSignupBonusResponse {
+  awarded: true;
+  amount: number;
+}
+
 // =====================
 // Tokens: Balances & Ledger
 // =====================
 
 export type BalanceDTO = Row<"balances">;
 
-export type LedgerEntryDTO = Row<"token_ledger">;
-export type LedgerPageDTO = CursorPage<LedgerEntryDTO>;
+export type LedgerEntryKind = z.infer<typeof LedgerKindSchema>;
+
+export interface LedgerEntryDto {
+  id: string;
+  kind: LedgerEntryKind;
+  amount: number;
+  details: Record<string, any>;
+  createdAt: string;
+}
+
+export interface LedgerEntriesResponseDto {
+  items: LedgerEntryDto[];
+  nextCursor: string | null;
+}
 
 export interface AwardSignupResultDTO {
   awarded: boolean;
   amount: number;
-}
-
-export interface AwardListingCommand {
-  tool_id: string;
-}
-export interface AwardListingResultDTO {
-  awarded: boolean;
-  amount: number;
-  count_used: number;
 }
 
 export interface RescueClaimResultDTO {

@@ -65,6 +65,22 @@ export class ToolHasActiveReservationsError extends ConflictError {
   }
 }
 
+export class AlreadyAwardedError extends ConflictError {
+  constructor(message = "Bonus already awarded.") {
+    super(message);
+    this.name = "AlreadyAwardedError";
+    this.code = "ALREADY_AWARDED";
+  }
+}
+
+export class LimitReachedError extends ConflictError {
+  constructor(message = "The limit for this action has been reached.") {
+    super(message);
+    this.name = "LimitReachedError";
+    this.code = "LIMIT_REACHED";
+  }
+}
+
 // 5xx Server Errors
 export class InternalServerError extends AppError {
   constructor(message = "Internal Server Error") {
