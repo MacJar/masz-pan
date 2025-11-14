@@ -58,6 +58,14 @@ export function ProfileView() {
         />
       </div>
 
+      {profile && (
+        <div className="mt-6 text-center">
+          <a href={`/u/${profile.id}`} className="inline-block bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors text-sm font-medium">
+            Zobacz jak wygląda mój profil publiczny
+          </a>
+        </div>
+      )}
+
       <QuickActions />
     </div>
   );

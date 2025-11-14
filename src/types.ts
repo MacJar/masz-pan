@@ -56,6 +56,7 @@ export interface PublicProfileDTO {
   location_text: Row<"public_profiles">["location_text"];
   avg_rating: Row<"public_profiles">["avg_stars"];
   ratings_count: Row<"public_profiles">["ratings_count"];
+  active_tools: ToolSummaryDTO[];
 }
 
 export interface ProfileGeocodeResultDTO {
@@ -65,6 +66,16 @@ export interface ProfileGeocodeResultDTO {
 // =====================
 // Tools
 // =====================
+
+/**
+ * Public tool summary for public profile view
+ */
+export interface ToolSummaryDTO {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  description: string;
+}
 
 /**
  * Tool row suitable for API responses. Internal search column omitted.
@@ -285,4 +296,27 @@ export interface DescribeToolCommand {
 }
 export interface DescribeToolSuggestionDTO {
   suggestion: string;
+}
+
+// =====================
+// View Models
+// =====================
+
+// Podsumowanie narzędzia z polem na link
+export interface ToolSummaryViewModel {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  description: string;
+  href: string;
+}
+
+// Publiczny profil użytkownika (konwencja camelCase)
+export interface PublicProfileViewModel {
+  id: string;
+  username: string;
+  locationText: string | null;
+  avgRating: number | null;
+  ratingsCount: number;
+  activeTools: ToolSummaryViewModel[];
 }

@@ -1,0 +1,47 @@
+---
+import { z } from "zod";
+import Layout from "@/layouts/Layout.astro";
+import { fetchPublicProfile, ProfileNotFoundError } from "@/lib/api/profile.client";
+import PublicProfileView from "@/components/profile/PublicProfileView";
+import type { PublicProfileDTO, PublicProfileViewModel } from "@/types";
+
+const { id } = Astro.params;
+
+// 1. Validate UUID from URL params
+const UuidSchema = z.string().uuid();
+const validationResult = UuidSchema.safeParse(id);
+
+if (!validationResult.success) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+// 2. Fetch data or handle errors
+let profileData: PublicProfileDTO;
+try {
+  profileData = await fetchPublicProfile(validationResult.data);
+} catch (error) {
+  if (error instanceof ProfileNotFoundError) {
+    return new Response(null, { status: 404, statusText: "Not Found" });
+  }
+  // For ApiValidationError or other generic errors, return 500
+  console.error(`Error fetching profile for id: ${id}`, error);
+  return new Response(null, { status: 500, statusText: "Internal Server Error" });
+}
+
+// 3. Map DTO to ViewModel
+const viewModel: PublicProfileViewModel = {
+  id: profileData.id,
+  username: profileData.username,
+  locationText: profileData.location_text,
+  avgRating: profileData.avg_rating,
+  ratingsCount: profileData.ratings_count,
+  activeTools: profileData.active_tools.map(tool => ({
+    ...tool,
+    href: `/tools/${tool.id}`,
+  })),
+};
+---
+
+<Layout title={`Profil ${viewModel.username}`}>
+  <PublicProfileView client:load initialData={viewModel} />
+</Layout>

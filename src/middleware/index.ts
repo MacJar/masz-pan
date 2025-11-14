@@ -55,7 +55,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // --- Redirection logic ---
 
   // List of paths that require authentication
-  const protectedPaths = ["/profile", "/tools/my", "/tools/new", "/tools/my-reservations"];
+  const protectedPaths = ["/profile", "/tools/my", "/tools/new", "/tools/my-reservations", "/tokens"];
   const protectedApiPaths = [
     "/api/tools", 
     "/api/reservations", 
