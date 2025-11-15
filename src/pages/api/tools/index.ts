@@ -5,9 +5,6 @@ import type { ToolStatus } from "@/types";
 
 export const prerender = false;
 
-// TODO: Replace with real authentication
-const MOCK_USER_ID = "1f587053-c01e-4aa6-8931-33567ca6a080";
-
 const getToolsQuerySchema = z.object({
   owner_id: z.string(),
   status: z.enum(["draft", "active", "archived", "inactive", "all"]).optional().default("all"),
@@ -26,49 +23,46 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 
   const { owner_id, status, limit, cursor } = validation.data;
-  // const { user } = locals; // Real user from session
-  const userId = MOCK_USER_ID; // Using mock user for now
+  const { user } = locals;
 
-  if (owner_id === 'me' && !userId) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  if (owner_id === "me" && !user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
-  
+
+  const resolvedOwnerId = owner_id === "me" ? user!.id : owner_id;
+
   try {
     const service = new ToolsService(locals.supabase);
     const result = await service.getToolsByOwner({
-      ownerId: userId,
-      status: status as ToolStatus | 'all',
+      ownerId: resolvedOwnerId,
+      status: status as ToolStatus | "all",
       limit,
       cursor,
     });
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
 };
 
-
 export const POST: APIRoute = async ({ locals }) => {
-  // const session = await locals.auth.getSession();
-  // if (!session) {
-  //   return new Response(
-  //     JSON.stringify({
-  //       error: {
-  //         code: "UNAUTHORIZED",
-  //         message: "User is not authenticated.",
-  //       },
-  //     }),
-  //     { status: 401, headers: { "Content-Type": "application/json" } }
-  //   );
-  // }
-  if (!MOCK_USER_ID) {
-    throw new Error("MOCK_USER_ID is not defined");
+  const { user } = locals;
+  if (!user) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "UNAUTHORIZED",
+          message: "User is not authenticated.",
+        },
+      }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
   }
 
   try {
     const service = new ToolsService(locals.supabase);
-    const draftTool = await service.createDraftTool(MOCK_USER_ID);
+    const draftTool = await service.createDraftTool(user.id);
 
     return new Response(JSON.stringify(draftTool), {
       status: 201,
