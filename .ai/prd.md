@@ -120,18 +120,27 @@ Grupa docelowa MVP: mieszkańcy jednej miejscowości/dzielnicy (10–20 testeró
 ## 5. Historyjki użytkowników
 
 US-001
-Tytuł: Rejestracja konta e-mail
+Tytuł: Rejestracja konta
 Opis: Jako nowy użytkownik chcę założyć konto przez e-mail/hasło, aby móc korzystać z aplikacji.
 Kryteria akceptacji:
-- Formularz przyjmuje e-mail i hasło; wysyłane jest potwierdzenie e-mail
-- Bez potwierdzenia e-mail użytkownik nie ma dostępu do funkcji wymagających profilu
+- Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+- Odzyskiwanie hasła powinno być możliwe.
 
 US-002
 Tytuł: Logowanie
-Opis: Jako użytkownik chcę zalogować się do aplikacji, aby zarządzać swoim kontem i narzędziami.
+Opis: Jako użytkownik chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
 Kryteria akceptacji:
-- Poprawne dane logują, błędne dane zwracają bezpieczny komunikat
-- Sesja użytkownika utrzymywana zgodnie z polityką bezpieczeństwa
+- Logowanie i rejestracja odbywają się na dedykowanych stronach.
+- Logowanie wymaga podania adresu email i hasła.
+- Użytkownik MOŻE bez logowania się do systemu korzystać z funkcji:
+-- rejestracji konta (US-001),
+-- wyszukiwania narzędzi (US-020).
+- Użytkownik NIE MOŻE korzystać z innych funkcji bez logowania się do systemu (jak opisano w US-005).
+- Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+- Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+- Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+- Poprawne dane logują, błędne dane zwracają bezpieczny komunikat.
+- Sesja użytkownika utrzymywana zgodnie z polityką bezpieczeństwa.
 
 US-003
 Tytuł: Wymuszone uzupełnienie profilu
@@ -139,6 +148,7 @@ Opis: Jako nowy użytkownik po rejestracji muszę uzupełnić nazwę, lokalizacj
 Kryteria akceptacji:
 - Brak możliwości pominęcia uzupełnienia
 - Zapis nazwy użytkownika, lokalizacji (tekst), znacznik zgody RODO
+- Wymaga logowania się do systemu.
 
 US-004
 Tytuł: Edycja profilu i lokalizacji
@@ -146,6 +156,7 @@ Opis: Jako użytkownik chcę zaktualizować nazwę i lokalizację, aby wyniki by
 Kryteria akceptacji:
 - Zmiana lokalizacji inicjuje geokodowanie; w razie błędu komunikat z prośbą o korektę
 - Zmiana nazwy odświeża widoki publiczne
+- Wymaga logowania się do systemu.
 
 US-005
 Tytuł: Ochrona tras wymagających logowania
@@ -160,6 +171,7 @@ Opis: Jako użytkownik chcę zobaczyć publiczny profil innego użytkownika z oc
 Kryteria akceptacji:
 - Widoczne: nazwa, średnia ocena, lista aktywnych narzędzi
 - Brak wrażliwych danych (e-mail ukryty do momentu warunków ujawnienia)
+- Wymaga logowania się do systemu.
 
 US-010
 Tytuł: Dodanie narzędzia
@@ -167,6 +179,7 @@ Opis: Jako właściciel chcę dodać narzędzie z nazwą, opisem, sugerowaną ce
 Kryteria akceptacji:
 - Wymagane minimum jedno zdjęcie; walidacja rozmiaru/formatu
 - Zapis danych narzędzia w bazie i obrazu w Storage
+- Wymaga logowania się do systemu.
 
 US-011
 Tytuł: Kompresja zdjęcia po stronie klienta
@@ -179,18 +192,21 @@ Tytuł: Edycja narzędzia
 Opis: Jako właściciel chcę edytować szczegóły mojego narzędzia.
 Kryteria akceptacji:
 - Edycja dostępna dla właściciela; zmiany nie wpływają na ceny już ustalonych rezerwacji
+- Wymaga logowania się do systemu.
 
 US-013
 Tytuł: Usunięcie narzędzia z blokadą aktywnych rezerwacji
 Opis: Jako właściciel chcę usunąć narzędzie, chyba że ma aktywne rezerwacje.
 Kryteria akceptacji:
 - Próba usunięcia przy aktywnych rezerwacjach zwraca jasny komunikat i blokuje operację
+- Wymaga logowania się do systemu.
 
 US-014
 Tytuł: Lista moich narzędzi
 Opis: Jako właściciel chcę widzieć listę swoich narzędzi i ich status rezerwacji.
 Kryteria akceptacji:
 - Widok zawiera podstawowe metadane i linki do edycji/usunięcia
+- Wymaga logowania się do systemu.
 
 US-020
 Tytuł: Wyszukiwanie po nazwie z filtrem geolokalnym
@@ -198,6 +214,7 @@ Opis: Jako użytkownik chcę wyszukiwać narzędzia po nazwie w promieniu 10 km 
 Kryteria akceptacji:
 - Wyniki ograniczone do 10 km; użytkownik widzi informację o odległości
 - Brak ustawionej lokalizacji wymusza uzupełnienie profilu
+- Nie wymaga logowania się do systemu, choć system pokazuje niezalogowanemu użytkownikowi losowe dane o narzędziach (max. 20 rekordów), bez uwzględniania geolokalizacji.
 
 US-021
 Tytuł: Geokodowanie lokalizacji profilu
@@ -207,7 +224,7 @@ Kryteria akceptacji:
 
 US-022
 Tytuł: Puste wyniki wyszukiwania
-Opis: Jako użytkownik chcę jasny komunikat, gdy w promieniu 10 km nie ma ofert.
+Opis: Jako użytkownik chcę jasny komunikat, gdy w promieniu 50 km nie ma ofert.
 Kryteria akceptacji:
 - Wyświetlany jest komunikat i podpowiedź, by spróbować później lub dodać narzędzie
 
@@ -222,90 +239,105 @@ Tytuł: Strona szczegółów narzędzia
 Opis: Jako użytkownik chcę zobaczyć szczegóły narzędzia i właściciela.
 Kryteria akceptacji:
 - Widoczne: nazwa, opis, zdjęcie, sugerowana cena, średnia ocena właściciela, przycisk zapytania o wypożyczenie
+- Wymaga logowania się do systemu.
 
 US-031
 Tytuł: Zapytanie o wypożyczenie
 Opis: Jako pożyczający chcę wysłać zapytanie do właściciela narzędzia.
 Kryteria akceptacji:
 - Po wysłaniu zapytanie widoczne w „Pożyczam”, u właściciela w „Użyczam”
+- Wymaga logowania się do systemu.
 
 US-032
 Tytuł: Akceptacja z kwotą przez właściciela
 Opis: Jako właściciel chcę zaakceptować zapytanie i wpisać finalną kwotę w Żetonach.
 Kryteria akceptacji:
 - Wpisanie liczby żetonów; zapis zmiany stanu; pożyczający widzi propozycję
+- Wymaga logowania się do systemu.
 
 US-033
 Tytuł: Potwierdzenie kwoty przez pożyczającego
 Opis: Jako pożyczający chcę potwierdzić lub odrzucić zaproponowaną kwotę.
 Kryteria akceptacji:
 - Potwierdzenie przechodzi do etapu ustaleń logistycznych; odrzucenie zamyka rezerwację
+- Wymaga logowania się do systemu.
 
 US-034
 Tytuł: Ujawnienie e-maili po obustronnym potwierdzeniu
 Opis: Jako system chcę ujawnić adresy e-mail obu stron po zaakceptowaniu kwoty przez obie strony.
 Kryteria akceptacji:
 - E-maile widoczne dla obu stron wyłącznie po tym kroku
+- Wymaga logowania się do systemu.
 
 US-035
 Tytuł: Oznaczenie „Odebrałem narzędzie” i blokada żetonów
 Opis: Jako pożyczający chcę oznaczyć odbiór narzędzia, aby zablokować żetony.
 Kryteria akceptacji:
 - Po kliknięciu żetony w wysokości uzgodnionej kwoty są blokowane na koncie pożyczającego
+- Wymaga logowania się do systemu.
 
 US-036
 Tytuł: Oznaczenie „Narzędzie wróciło” i transfer żetonów
 Opis: Jako właściciel chcę oznaczyć zwrot narzędzia, aby otrzymać żetony.
 Kryteria akceptacji:
 - Po kliknięciu następuje transfer zablokowanych żetonów do właściciela, rezerwacja zamknięta
+- Wymaga logowania się do systemu.
 
 US-037
 Tytuł: Anulowanie rezerwacji przed transferem
 Opis: Jako dowolna strona chcę móc anulować rezerwację do czasu finalnego transferu żetonów.
 Kryteria akceptacji:
 - Anulowanie odblokowuje ewentualnie zablokowane żetony i kończy rezerwację jako anulowaną
+- Wymaga logowania się do systemu.
 
 US-038
 Tytuł: Widok „Moje Rezerwacje” z zakładkami
 Opis: Jako użytkownik chcę mieć widok moich rezerwacji w dwóch zakładkach: „Pożyczam” i „Użyczam”.
 Kryteria akceptacji:
 - Widoczna lista rezerwacji z aktualnym stanem i dostępnymi akcjami
+- Wymaga logowania się do systemu.
 
 US-040
 Tytuł: Saldo startowe żetonów
 Opis: Jako użytkownik po uzupełnieniu profilu chcę otrzymać 10 Żetonów startowych.
 Kryteria akceptacji:
 - Jednorazowe naliczenie po pierwszym kompletnym profilu
+- Wymaga logowania się do systemu.
 
 US-041
 Tytuł: Bonus za pierwsze wystawienia
 Opis: Jako użytkownik chcę otrzymać +2 Żetony za każde z pierwszych trzech wystawionych narzędzi.
 Kryteria akceptacji:
 - Bonus nalicza się maksymalnie 3 razy, jeden raz na nowe narzędzie
+- Wymaga logowania się do systemu.
 
 US-042
 Tytuł: System ratunkowy +1 Żeton dziennie
 Opis: Jako użytkownik z saldem 0 chcę móc dodać +1 Żeton raz dziennie.
 Kryteria akceptacji:
 - Przycisk aktywny wyłącznie przy saldzie 0; limit resetuje się o północy CET
+- Wymaga logowania się do systemu.
 
 US-043
 Tytuł: Transfer żetonów po zakończeniu
 Opis: Jako system chcę przelać żetony właścicielowi po oznaczeniu zwrotu.
 Kryteria akceptacji:
 - Kwota zgodna z uzgodnioną; zapis transakcji w historii ruchów
+- Wymaga logowania się do systemu.
 
 US-050
 Tytuł: Wystawienie oceny
 Opis: Jako każda ze stron chcę wystawić rating 1–5 po zakończeniu transakcji.
 Kryteria akceptacji:
 - Jedna ocena per strona per transakcja; zapis i agregacja do średniej
+- Wymaga logowania się do systemu.
 
 US-051
 Tytuł: Wyświetlanie średniej oceny
 Opis: Jako użytkownik chcę widzieć średnią ocenę właściciela na profilu i stronie narzędzia.
 Kryteria akceptacji:
 - Średnia wyliczana z ostatnich ocen; zaokrąglenie i liczba ocen widoczne
+- Wymaga logowania się do systemu.
 
 US-060
 Tytuł: Generowanie opisu narzędzia przez AI
@@ -348,7 +380,6 @@ Tytuł: Spójność stanów rezerwacji
 Opis: Jako system chcę egzekwować poprawną kolejność stanów (zapytanie → akceptacja → potwierdzenie → odebrane → zwrócone) i zasady anulowania.
 Kryteria akceptacji:
 - Niemożliwe jest pominięcie kroku; przy anulowaniu stany i żetony wracają do poprawnych wartości
-
 
 ## 6. Metryki sukcesu
 
