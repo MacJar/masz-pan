@@ -97,3 +97,4 @@ Ten punkt końcowy służy do pobierania szczegółowych informacji o konkretnym
       status = 'active' OR owner_id = auth.uid()
     );
     ```
+

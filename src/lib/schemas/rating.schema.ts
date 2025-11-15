@@ -10,3 +10,4 @@ export const CreateRatingSchema = z.object({
 });
 
 export type CreateRatingDto = z.infer<typeof CreateRatingSchema>;
+

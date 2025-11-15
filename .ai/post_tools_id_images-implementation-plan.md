@@ -105,3 +105,4 @@ Do walidacji danych wejściowych zostanie użyty schemat Zod.
       - Obsługa specyficznego błędu bazy danych dla naruszenia unikalności (kod `23505` w PostgreSQL) i opakowanie go w `AppError`.
 5.  **Typy**: Upewnić się, że typ `ToolImage` jest dostępny (jeśli nie, wygenerować go na podstawie `database.types.ts`).
 6.  **Testowanie**: Ręczne przetestowanie endpointu za pomocą narzędzia API (np. Postman, Insomnia) uwzględniając wszystkie scenariusze sukcesu i błędów.
+

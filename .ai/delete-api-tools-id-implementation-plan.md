@@ -98,3 +98,4 @@ Ten punkt końcowy obsługuje miękkie usuwanie (archiwizację) narzędzia. Zami
         -   Próba archiwizacji narzędzia z aktywną rezerwacją (oczekiwany 409).
         -   Próba archiwizacji nieistniejącego narzędzia (oczekiwany 404).
         -   Próba archiwizacji z niepoprawnym UUID (oczekiwany 400).
+

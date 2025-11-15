@@ -214,3 +214,4 @@ Hook `useReservationsManager` będzie korzystał z następujących endpointów:
 8.  **Obsługa błędów i powiadomień**: Integracja z `sonner` (toast) w celu wyświetlania komunikatów o sukcesie i błędach operacji.
 9.  **Dane kontaktowe**: Implementacja komponentu `ContactDetails` z logiką leniwego pobierania danych.
 10. **Styling i finalizacja**: Dopracowanie stylów (TailwindCSS) i responsywności widoku.
+

@@ -101,3 +101,4 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom odebranie dziennego
     - Wywołaj `tokensService.claimRescueToken(...)` w bloku `try...catch`.
     - Przechwyć `ServiceError` i użyj `error()` z Astro, aby zwrócić odpowiedni status (409 lub 422).
     - W przypadku powodzenia, uzyskaj aktualną datę CET, stwórz obiekt odpowiedzi i zwróć go jako JSON z kodem `200 OK`.
+

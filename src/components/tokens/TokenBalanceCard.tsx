@@ -31,3 +31,4 @@ export const TokenBalanceCard = ({ balance, isLoading }: Props) => {
     </div>
   );
 };
+

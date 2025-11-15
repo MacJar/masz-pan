@@ -1,9 +1,9 @@
-import {
+import type {
   TokenBalanceDto,
   TokenLedgerEntryDto,
   EligibleToolDto,
-  LedgerKind,
-} from '@/components/tokens/tokens.types';
+  TokenLedgerKind,
+} from '@/types';
 import { handleApiResponse } from './responses';
 
 export const getBalance = async (): Promise<TokenBalanceDto> => {
@@ -13,7 +13,7 @@ export const getBalance = async (): Promise<TokenBalanceDto> => {
 
 export const getLedger = async (
   cursor: string | null = null,
-  kind: LedgerKind | null = null
+  kind: TokenLedgerKind | null = null
 ): Promise<{ entries: TokenLedgerEntryDto[]; nextCursor: string | null }> => {
   const params = new URLSearchParams();
   if (cursor) {

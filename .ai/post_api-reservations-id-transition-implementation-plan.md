@@ -113,3 +113,4 @@ Endpoint będzie zwracał następujące kody statusu w przypadku błędów:
     -   Wywołać serwis `reservationsService.transitionReservationState`.
     -   Obsłużyć potencjalne błędy rzucane przez serwis i zmapować je na odpowiednie odpowiedzi `Response` z kodami statusu.
     -   Zwrócić `Response.json(...)` z poprawną odpowiedzią w przypadku sukcesu.
+

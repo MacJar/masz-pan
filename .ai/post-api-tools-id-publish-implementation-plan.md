@@ -109,3 +109,4 @@ Celem tego punktu końcowego jest publikacja narzędzia, czyli zmiana jego statu
 5.  **Testowanie**:
     - Przygotować testy jednostkowe dla `ToolService`, mockując wywołania klienta Supabase.
     - Przygotować testy integracyjne dla endpointu API, które sprawdzą wszystkie ścieżki (sukces, różne scenariusze błędów).
+

@@ -96,3 +96,4 @@ Ten punkt końcowy jest przeznaczony do przyznawania jednorazowego bonusu w post
         d. Jeśli wywołanie serwisu zakończy się sukcesem, zwróć odpowiedź `200 OK` z payloadem `{ awarded: true, amount: 10 }`.
 4.  **Typy:**
     -   Dodaj `AwardSignupBonusResponse` do `src/types.ts`.
+

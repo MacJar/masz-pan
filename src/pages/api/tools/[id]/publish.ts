@@ -34,3 +34,4 @@ export const POST: APIRoute = async ({ params, locals }) => {
     return createApiErrorResponse(500, "Failed to publish tool due to an unexpected error.");
   }
 };
+

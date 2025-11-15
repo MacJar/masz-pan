@@ -23,3 +23,4 @@ export interface ReservationViewModel extends ReservationWithToolDTO {
   // Lista akcji, które bieżący użytkownik może wykonać w danym stanie
   availableActions: ReservationAction[];
 }
+

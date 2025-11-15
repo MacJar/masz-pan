@@ -34,3 +34,4 @@ export const GET: APIRoute = async ({ params, locals }) => {
     return createApiErrorResponse(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
   }
 };
+

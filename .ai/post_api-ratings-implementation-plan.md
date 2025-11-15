@@ -106,3 +106,4 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie oceny (w 
     -   Wywołaj `RatingsService.createRating` w bloku `try...catch`.
     -   Mapuj błędy rzucone przez serwis na odpowiednie odpowiedzi HTTP (np. `error instanceof NotFoundError` na status 404).
     -   W przypadku sukcesu, zwróć odpowiedź z kodem `201 Created`.
+

@@ -234,3 +234,4 @@ export async function GET({ params, locals }: APIContext): Promise<Response> {
 - **Zgodność DB**: `suggested_price_tokens` mieści się w `[1,5]` — db constraint, bez potrzeby dodatkowej walidacji tutaj (tylko odczyt).
 
 
+

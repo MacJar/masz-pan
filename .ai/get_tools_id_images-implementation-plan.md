@@ -93,3 +93,4 @@ Punkt końcowy będzie obsługiwał następujące scenariusze błędów:
     - Odmowa dostępu dla zalogowanego użytkownika (nie-właściciela) do narzędzia w stanie `draft`.
     - Poprawna obsługa nieistniejącego `id` (404).
     - Poprawna obsługa niepoprawnego `id` (400).
+

@@ -8,12 +8,12 @@ import {
   claimListingBonus,
   claimRescueBonus,
 } from '@/lib/api/tokens.client';
-import {
+import type {
   TokenBalanceDto,
   TokenLedgerEntryViewModel,
-  LedgerKind,
+  TokenLedgerKind,
   BonusStateViewModel,
-} from '@/components/tokens/tokens.types';
+} from '@/types';
 
 const transformLedgerEntry = (entry: any): TokenLedgerEntryViewModel => ({
   ...entry,
@@ -25,7 +25,7 @@ export const useTokensView = () => {
   const [balance, setBalance] = useState<TokenBalanceDto | null>(null);
   const [ledgerEntries, setLedgerEntries] = useState<TokenLedgerEntryViewModel[]>([]);
   const [ledgerCursor, setLedgerCursor] = useState<string | null>(null);
-  const [ledgerFilter, setLedgerFilter] = useState<LedgerKind | null>(null);
+  const [ledgerFilter, setLedgerFilter] = useState<TokenLedgerKind | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
   const [bonusState, setBonusState] = useState<BonusStateViewModel>({
@@ -61,7 +61,7 @@ export const useTokensView = () => {
   }, []);
 
   const fetchLedger = useCallback(
-    async (newFilter: LedgerKind | null = ledgerFilter, reset = false) => {
+    async (newFilter: TokenLedgerKind | null = ledgerFilter, reset = false) => {
       if (!hasMore && !reset) return;
 
       setIsLoading((prev) => ({ ...prev, ledger: true }));
@@ -130,7 +130,7 @@ export const useTokensView = () => {
     fetchLedger(ledgerFilter, false);
   }, [ledgerCursor, hasMore, isLoading.ledger, fetchLedger, ledgerFilter]);
 
-  const handleFilterChange = (newFilter: LedgerKind | null) => {
+  const handleFilterChange = (newFilter: TokenLedgerKind | null) => {
     const filter = newFilter === 'all' ? null : newFilter;
     setLedgerFilter(filter);
     setLedgerCursor(null);

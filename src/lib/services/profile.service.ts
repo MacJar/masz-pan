@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
 import { createServiceClient } from "../../db/supabase.client.ts";
-import type { ProfileDTO, ProfileUpsertCommand, RatingSummaryDTO } from "../../types.ts";
+import type { ProfileDTO, ProfileUpsertCommand, PublicProfileDTO, RatingSummaryDTO, ToolSummaryDTO } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
 import { geocodeLocation } from "./geocoding.service.ts";
-import type { PublicProfileDTO } from "../../types";
+import { getToolImagePublicUrl } from "../utils.ts";
 
 const NOT_FOUND_ERROR_CODE = "PGRST116";
 
@@ -279,6 +279,10 @@ export const profileService = {
   normalizeLocationText,
   hasLocationChanged,
   logAuditEvent,
+  /**
+   * Returns a public profile DTO enriched with active tools owned by the user.
+   * This is used by both the public profile API and the `/u/:id` page.
+   */
   getPublicProfile: async (supabase: SupabaseClient, userId: string): Promise<PublicProfileDTO | null> => {
     const { data, error } = await supabase.from("public_profiles").select().eq("id", userId).single();
 
@@ -295,13 +299,44 @@ export const profileService = {
       return null;
     }
 
-    // Map db view to DTO
+    // Fetch active tools for this user (public-only)
+    const { data: tools, error: toolsError } = await supabase
+      .from("tools")
+      .select("id, name, description, images:tool_images(storage_key)")
+      .eq("owner_id", userId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+
+    if (toolsError) {
+      console.error("Error fetching active tools for public profile:", toolsError);
+      throw new Error("Could not fetch user's public tools.");
+    }
+
+    const active_tools: ToolSummaryDTO[] = Array.isArray(tools)
+      ? tools.map((tool: any) => {
+          const firstImage = Array.isArray(tool.images) && tool.images.length > 0 ? tool.images[0] : null;
+          const imageUrl =
+            firstImage && typeof firstImage.storage_key === "string" && firstImage.storage_key.length > 0
+              ? getToolImagePublicUrl(firstImage.storage_key)
+              : null;
+
+          return {
+            id: tool.id,
+            name: tool.name ?? "",
+            imageUrl,
+            description: tool.description ?? "",
+          };
+        })
+      : [];
+
+    // Map db view + tools to DTO
     const profile: PublicProfileDTO = {
       id: typeof data.id === "string" ? data.id : "",
       username: data.username ?? "",
-      location_text: data.location_text ?? "",
+      location_text: data.location_text ?? null,
       avg_rating: data.avg_stars ?? null, // Remap avg_stars to avg_rating
       ratings_count: typeof data.ratings_count === "number" ? data.ratings_count : 0,
+      active_tools,
     };
 
     return profile;

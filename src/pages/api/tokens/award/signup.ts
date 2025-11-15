@@ -1,28 +1,26 @@
 import type { APIRoute } from "astro";
-import { TokensService } from "@/lib/services/tokens.service";
+import { tokensService } from "@/lib/services/tokens.service";
 import { AlreadyAwardedError } from "@/lib/services/errors.service";
-import type { AwardSignupBonusResponse } from "@/types";
+import type { AwardSignupResultDTO } from "@/types";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ locals }) => {
-  const { user, supabase } = locals;
+  const { session, supabase } = locals;
 
-  if (!user) {
+  if (!session?.user || !supabase) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const tokensService = new TokensService(supabase);
-
   try {
-    const { amount } = await tokensService.awardSignupBonus(user.id);
+    await tokensService.awardSignupBonus(supabase, session.user.id);
 
-    const responseBody: AwardSignupBonusResponse = {
+    const responseBody: AwardSignupResultDTO = {
       awarded: true,
-      amount,
+      amount: 50, // TODO: optionally return actual amount from DB if needed
     };
 
     return new Response(JSON.stringify(responseBody), {

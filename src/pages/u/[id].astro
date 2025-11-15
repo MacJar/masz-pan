@@ -1,8 +1,8 @@
 ---
 import { z } from "zod";
 import Layout from "@/layouts/Layout.astro";
-import { fetchPublicProfile, ProfileNotFoundError } from "@/lib/api/profile.client";
 import PublicProfileView from "@/components/profile/PublicProfileView";
+import { profileService } from "@/lib/services/profile.service";
 import type { PublicProfileDTO, PublicProfileViewModel } from "@/types";
 
 const { id } = Astro.params;
@@ -16,14 +16,15 @@ if (!validationResult.success) {
 }
 
 // 2. Fetch data or handle errors
-let profileData: PublicProfileDTO;
+let profileData: PublicProfileDTO | null;
 try {
-  profileData = await fetchPublicProfile(validationResult.data);
-} catch (error) {
-  if (error instanceof ProfileNotFoundError) {
+  const supabase = Astro.locals.supabase;
+  profileData = await profileService.getPublicProfile(supabase, validationResult.data);
+
+  if (!profileData) {
     return new Response(null, { status: 404, statusText: "Not Found" });
   }
-  // For ApiValidationError or other generic errors, return 500
+} catch (error) {
   console.error(`Error fetching profile for id: ${id}`, error);
   return new Response(null, { status: 500, statusText: "Internal Server Error" });
 }

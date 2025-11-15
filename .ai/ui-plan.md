@@ -216,3 +216,4 @@
 - **RouteGuards**: integracja z middleware i stanem profilu; banery informacyjne.
 
 
+

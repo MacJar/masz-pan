@@ -26,3 +26,4 @@ begin
   values (p_user_id, 'award', p_amount, jsonb_build_object('source','rescue_claim','claim_date_cet',v_date::text));
 end;
 $$;
+

@@ -43,3 +43,4 @@ export const LedgerEntryItem = ({ entry }: Props) => {
     </div>
   );
 };
+

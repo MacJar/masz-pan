@@ -11,7 +11,8 @@ export const getMyReservations = async (params: {
   if (!response.ok) {
     throw new Error("Failed to fetch reservations");
   }
-  return response.json();
+  const data = await response.json();
+  return data.items;
 };
 
 export const transitionReservation = async (

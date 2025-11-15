@@ -152,3 +152,4 @@ return created ? jsonOk201(profile) : jsonOk(profile)
 Uwagi: `jsonOk201` można zaimplementować lokalnie (odpowiednik `jsonOk` z `status: 201`).
 
 
+

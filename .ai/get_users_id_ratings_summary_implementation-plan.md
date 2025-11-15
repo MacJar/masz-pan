@@ -112,3 +112,4 @@ Celem tego punktu końcowego jest dostarczenie zagregowanych danych dotyczących
 4.  **Testowanie:**
     -   Przygotuj dane testowe w bazie danych (użytkownicy z ocenami i bez).
     -   Wykonaj ręczne testy punktu końcowego za pomocą narzędzia typu cURL lub Postman, sprawdzając wszystkie scenariusze (sukces, nieprawidłowe ID, nieistniejący użytkownik).
+

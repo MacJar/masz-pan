@@ -43,3 +43,4 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     "Successfully cancelled reservation"
   );
 };
+

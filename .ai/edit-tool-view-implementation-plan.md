@@ -183,3 +183,4 @@ Integracja z API będzie realizowana poprzez wywołania do istniejących i nowyc
     -   Dodanie logiki do zapisywania nowej kolejności zdjęć w `useToolEditor`.
 9.  **Finalizacja obsługi błędów i stanów UI**: Upewnienie się, że wszystkie stany (ładowanie, błędy, sukces) są poprawnie komunikowane użytkownikowi za pomocą komponentów `Skeleton`, `Alert`, `Toast`.
 10. **Testowanie manualne**: Przejście przez wszystkie ścieżki użytkownika, włączając przypadki brzegowe.
+

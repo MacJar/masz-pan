@@ -108,3 +108,4 @@ Operacja jest transakcyjna i dotyczy pojedynczego rekordu, więc nie przewiduje 
     -   Wywołać metodę `reservationsService.cancelReservation(...)` w bloku `try...catch`.
     -   Obsłużyć potencjalne błędy z serwisu i mapować je na odpowiednie odpowiedzi HTTP z kodami stanu.
     -   W przypadku sukcesu, zwrócić zaktualizowaną rezerwację z kodem `200 OK`.
+

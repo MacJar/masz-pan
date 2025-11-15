@@ -31,3 +31,4 @@ exception
     return result;
 end;
 $$ language plpgsql security definer;
+

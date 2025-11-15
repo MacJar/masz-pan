@@ -119,3 +119,4 @@ Ten punkt końcowy umożliwia zalogowanemu użytkownikowi otrzymanie bonusu w po
 4.  **Testowanie:**
     -   Dodaj testy jednostkowe/integracyjne dla serwisu `tokens.service.ts`, sprawdzając wszystkie ścieżki (sukces, błędy uprawnień, przekroczenie limitu, ponowna próba dla tego samego narzędzia).
     -   Przeprowadź testy E2E dla endpointu API, symulując różne scenariusze.
+

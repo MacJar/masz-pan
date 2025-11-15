@@ -8,3 +8,4 @@ export interface ToolDetailsViewModel {
 	tool: ToolWithImagesDTO;
 	owner: PublicProfileDTO;
 }
+

@@ -98,13 +98,9 @@ export const useReservationsManager = () => {
 
   useEffect(() => {
     if (currentUser?.id) {
-      const role = activeTab;
-      // Fetch only if not already loaded or if it's a refresh
-      if (reservations[role].length === 0) {
-        fetchReservations(activeTab, currentUser.id);
-      }
+      fetchReservations(activeTab, currentUser.id);
     }
-  }, [activeTab, currentUser, fetchReservations, reservations]);
+  }, [activeTab, currentUser?.id, fetchReservations]);
 
   const updateReservationState = (
     reservationId: string,

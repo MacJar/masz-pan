@@ -124,3 +124,4 @@ Struktura błędu: `jsonError(status, code, message, details?)`.
 - 500 – błąd serwera/bazy
 
 
+

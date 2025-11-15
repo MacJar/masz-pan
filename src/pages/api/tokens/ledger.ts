@@ -1,14 +1,20 @@
 import type { APIRoute } from "astro";
 import { GetLedgerEntriesQuerySchema } from "@/lib/schemas/token.schema";
-import { TokensService } from "@/lib/services/tokens.service";
-import { ErrorService } from "@/lib/services/errors.service";
+import { tokensService } from "@/lib/services/tokens.service";
+import { jsonError } from "../../../lib/api/responses.ts";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, locals }) => {
   const session = locals.session;
+  const supabase = locals.supabase;
+
+  if (!supabase) {
+    return jsonError(500, "internal_error", "Unexpected server configuration error.");
+  }
+
   if (!session?.user) {
-    return ErrorService.json({ code: "UNAUTHORIZED", message: "Not authenticated" }, 401);
+    return jsonError(401, "auth_required", "Authentication required.");
   }
 
   const url = new URL(request.url);
@@ -16,24 +22,17 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
   const validationResult = GetLedgerEntriesQuerySchema.safeParse(queryParams);
   if (!validationResult.success) {
-    return ErrorService.json(
-      {
-        code: "BAD_REQUEST",
-        message: "Invalid query parameters",
-        details: validationResult.error.flatten(),
-      },
-      400,
-    );
+    return jsonError(400, "validation_error", "Invalid query parameters", validationResult.error.flatten());
   }
 
   try {
-    const result = await TokensService.getLedgerEntries(locals.supabase, session.user.id, validationResult.data);
+    const result = await tokensService.getLedgerEntries(supabase, session.user.id, validationResult.data);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error fetching token ledger:", error);
-    return ErrorService.json({ code: "INTERNAL_SERVER_ERROR", message: "Could not fetch token ledger" }, 500);
+    return jsonError(500, "internal_error", "Could not fetch token ledger");
   }
 };

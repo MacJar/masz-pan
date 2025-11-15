@@ -64,3 +64,27 @@ export function apiError(error: unknown): Response {
   // TODO: Add logging for unexpected errors
   return jsonError(500, "INTERNAL_SERVER_ERROR", "An unexpected error has occurred.");
 }
+
+/**
+ * Small helper for frontend API clients.
+ * - Parses JSON when available
+ * - On non-2xx responses tries to interpret payload as ApiErrorDTO and throws AppError
+ */
+export async function handleApiResponse<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const parsed = isJson && text ? (JSON.parse(text) as unknown) : null;
+
+  if (!response.ok) {
+    const errorPayload = (parsed as ApiErrorDTO | null)?.error;
+
+    if (errorPayload) {
+      throw new AppError(errorPayload.message, response.status, errorPayload.code);
+    }
+
+    throw new AppError("Unexpected error", response.status, "INTERNAL_SERVER_ERROR");
+  }
+
+  // For 204 / empty body, parsed will be null – caller decides how to interpret it
+  return (parsed as T) ?? ({} as T);
+}

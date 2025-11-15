@@ -127,3 +127,4 @@ Ten punkt końcowy umożliwia uwierzytelnionemu użytkownikowi (wypożyczającem
 4.  **Testowanie:**
     - (Opcjonalnie) Dodaj testy jednostkowe dla serwisu `reservations.service.ts`, obejmujące wszystkie ścieżki logiki biznesowej i scenariusze błędów.
     - Przeprowadź testy integracyjne endpointu za pomocą narzędzia do testowania API (np. Postman), aby zweryfikować poprawność działania, obsługę błędów i zabezpieczenia.
+

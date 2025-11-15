@@ -15,3 +15,4 @@ export function ErrorDisplay({ message }: ErrorDisplayProps) {
     </Alert>
   );
 }
+

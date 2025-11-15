@@ -111,3 +111,4 @@ export interface ReservationDetailsDto {
     -   Wywołać metodę serwisu `getReservationDetails` w bloku `try...catch`.
     -   Obsłużyć błędy z serwisu, mapując je na odpowiednie odpowiedzi HTTP (`404`, `500`).
     -   W przypadku sukcesu, zwrócić pobrane dane z kodem statusu `200`.
+

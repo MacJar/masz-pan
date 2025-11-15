@@ -141,3 +141,4 @@ Celem tego punktu końcowego jest bezpieczne generowanie czasowego, podpisanego 
 5.  **Konfiguracja zmiennych środowiskowych:**
     -   Upewnij się, że stałe `MAX_IMAGE_SIZE_BYTES` i `ALLOWED_IMAGE_TYPES` są zdefiniowane w sposób umożliwiający łatwą konfigurację (np. w `src/config.ts` lub bezpośrednio w pliku z typami, jeśli nie przewiduje się ich częstej zmiany).
 
+

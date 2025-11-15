@@ -192,3 +192,4 @@ Walidacja odbywa się na poziomie komponentu `BonusActions` i jest sterowana prz
 10. Implementacja obsługi błędów i stanów ładowania we wszystkich komponentach.
 11. Stylizacja całości za pomocą TailwindCSS zgodnie z design systemem.
 12. Przeprowadzenie testów manualnych dla wszystkich scenariuszy (sukces, błąd, warunki brzegowe).
+

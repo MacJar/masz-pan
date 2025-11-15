@@ -105,3 +105,4 @@ Ten punkt końcowy umożliwia bezpieczne pobranie adresów e-mail właściciela 
 5.  **Testowanie:**
     - Napisać testy jednostkowe dla logiki serwisu, symulując różne odpowiedzi RPC.
     - Przeprowadzić testy integracyjne (manualne lub automatyczne) dla endpointu, sprawdzając wszystkie ścieżki sukcesu i błędów (różne statusy, brak uprawnień, brak rezerwacji, itp.).
+
