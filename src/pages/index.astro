@@ -1,17 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import ToolsSearchApp from "@/components/tools/ToolsSearchApp";
-import Welcome from "@/components/Welcome.astro";
 
 const { q } = Astro.params;
-const { session } = Astro.locals;
 ---
 
 <Layout title="Masz Pan Narzędzie">
   <main class="container mx-auto px-4 py-8">
     <div class="mx-auto max-w-4xl">
       <h1 class="mb-4 text-center text-4xl font-bold">Wypożyczalnia narzędzi w Twojej okolicy</h1>
-      {session ? <ToolsSearchApp client:load initialQuery={q} /> : <Welcome />}
+      <ToolsSearchApp client:load initialQuery={q} />
     </div>
   </main>
 </Layout>

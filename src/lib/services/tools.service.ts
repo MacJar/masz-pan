@@ -386,6 +386,7 @@ export class ToolsService {
       name: r.name,
       distance_m: r.distance_m,
       main_image_url: r.main_image_url,
+      ownerName: r.owner_name,
     }));
 
     // 4) Build next cursor
@@ -423,6 +424,7 @@ export class ToolsService {
       name: r.name,
       distance_m: r.distance_m,
       main_image_url: r.main_image_url,
+      ownerName: r.owner_name,
     }));
 
     // 3) Build next cursor and full image URLs
@@ -467,6 +469,7 @@ export class ToolsService {
       name: r.name,
       distance_m: r.distance_m,
       main_image_url: r.main_image_url,
+      ownerName: r.owner_name,
     }));
 
     // 4) Build next cursor
@@ -606,5 +609,6 @@ interface RpcRow {
   name: string;
   distance_m: number;
   main_image_url: string | null;
+  owner_name: string;
   cursor_key?: { lastDistance: number; lastId: string } | null;
 }

@@ -110,6 +110,7 @@ export interface ToolSearchItemDTO {
   name: string;
   distance_m: number;
   main_image_url: string | null;
+  ownerName: string;
 }
 export type ToolSearchPageDTO = CursorPage<ToolSearchItemDTO>;
 

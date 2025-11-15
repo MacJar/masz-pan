@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin } from "lucide-react";
 
 interface PublicToolCardProps {
-  tool: ToolSummaryViewModel & { distanceText?: string };
+  tool: ToolSummaryViewModel & { distanceText?: string; ownerName?: string };
 }
 
 const PublicToolCard: React.FC<PublicToolCardProps> = ({ tool }) => {
@@ -18,12 +18,15 @@ const PublicToolCard: React.FC<PublicToolCardProps> = ({ tool }) => {
           {tool.description && <CardDescription>{tool.description}</CardDescription>}
         </CardHeader>
         <CardContent>
-          {tool.distanceText && (
-            <Badge variant="secondary">
-              <MapPin className="mr-1 h-3 w-3" />
-              {tool.distanceText}
-            </Badge>
-          )}
+          <div className="flex justify-between items-center">
+            {tool.distanceText && (
+              <Badge variant="secondary">
+                <MapPin className="mr-1 h-3 w-3" />
+                {tool.distanceText}
+              </Badge>
+            )}
+            {tool.ownerName && <span className="text-sm text-muted-foreground">{tool.ownerName}</span>}
+          </div>
         </CardContent>
       </Card>
     </a>

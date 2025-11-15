@@ -27,6 +27,7 @@ export interface ToolSearchItemVM {
   distanceMeters: number;
   distanceText: string;
   mainImageUrl: string | null;
+  ownerName: string;
 }
 
 export interface ToolSearchPageVM {
@@ -55,6 +56,7 @@ export function mapItemToVM(dto: ToolSearchItemDTO): ToolSearchItemVM {
     distanceMeters,
     distanceText: formatDistance(distanceMeters),
     mainImageUrl: dto.main_image_url,
+    ownerName: dto.ownerName,
   };
 }
 

@@ -24,6 +24,7 @@ const PublicToolsGrid: React.FC<PublicToolsGridProps> = ({ items, onLoadMore, ha
               href: `/tools/${item.id}`,
               description: "", // PublicToolCard requires description, but search results don't have it.
               distanceText: item.distanceText,
+              ownerName: item.ownerName,
             }}
           />
         ))}
