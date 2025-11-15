@@ -49,14 +49,22 @@ export default function ToolsSearchApp(props: ToolsSearchAppProps): JSX.Element 
         />
       )}
 
+      <br />
+
       {state.status === "ready" && state.items.length === 0 && <EmptyState query={state.query} />}
 
       {state.status === "ready" && state.items.length > 0 && (
         <>
           {state.mode === "nearby" && (
-            <h2 className="my-6 text-center text-xl font-semibold">Narzędzia w pobliżu (do 50 km)</h2>
+            <h2 className="my-6 text-center text-xl font-semibold">
+              {state.query.trim().length > 0
+                ? "Znalezione narzędzia w pobliżu (do 50 km)"
+                : "Narzędzia w pobliżu (do 50 km)"}
+            </h2>
           )}
-          {state.mode === "search" && state.query.length > 0 && <h2 className="text-xl font-semibold">Wyniki wyszukiwania</h2>}
+          {state.mode === "search" && state.query.length > 0 && (
+            <h2 className="text-xl font-semibold">Wyniki wyszukiwania</h2>
+          )}
           {state.mode === "nearby" ? (
             <PublicToolsGrid
               items={state.items}
