@@ -158,7 +158,14 @@ export class ReservationsService {
 
     let queryBuilder = this.supabase
       .from("reservations")
-      .select("id, status, created_at")
+      .select(
+        `
+        *,
+        tool:tools(id, name),
+        borrower:profiles!reservations_borrower_id_fkey(id, username),
+        owner:profiles!reservations_owner_id_fkey(id, username)
+      `
+      )
       .eq(role === "owner" ? "owner_id" : "borrower_id", userId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false }) // Tie-breaker for stable sorting
@@ -199,7 +206,7 @@ export class ReservationsService {
     }
 
     return {
-      items: items.map(({ id, status }) => ({ id, status: status! })),
+      items: items,
       next_cursor,
     };
   }

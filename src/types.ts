@@ -103,7 +103,7 @@ export interface ToolArchivedResponseDto {
 }
 
 export type ToolListItemDTO = Pick<ToolDTO, "id" | "name" | "status">;
-export type ToolListPageDTO = CursorPage<ToolListItemDTO>;
+export type ToolListPageDTO = CursorPage<ToolSearchItemDTO>;
 
 export interface ToolSearchItemDTO {
   id: string;
@@ -174,7 +174,9 @@ export type ReservationListItemDTO = Pick<ReservationDTO, "id" | "status">;
 export type ReservationListPageDTO = CursorPage<ReservationListItemDTO>;
 
 export type ReservationWithToolDTO = ReservationDTO & {
-  tool?: Pick<ToolDTO, "id" | "name" | "owner_id" | "suggested_price_tokens" | "status">;
+  tool: Pick<ToolDTO, "id" | "name"> | null;
+  borrower: Pick<ProfileDTO, "id" | "username"> | null;
+  owner: Pick<ProfileDTO, "id" | "username"> | null;
 };
 
 export interface ReservationTransitionResponseDto {

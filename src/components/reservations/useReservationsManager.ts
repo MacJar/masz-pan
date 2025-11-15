@@ -19,10 +19,7 @@ type ReservationsState = {
 
 const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): ReservationViewModel => {
   const currentUserRole = dto.owner_id === currentUserId ? "owner" : "borrower";
-  const counterpartyId = currentUserRole === "owner" ? dto.borrower_id : dto.owner_id;
-  
-  const counterpartyUsername = counterpartyId ? `User ${counterpartyId.substring(0, 6)}` : "Nieznany użytkownik";
-  const counterparty = { id: counterpartyId, username: counterpartyUsername };
+  const counterparty = currentUserRole === "owner" ? dto.borrower : dto.owner;
 
   const availableActions: ReservationAction[] = [];
 
@@ -31,14 +28,12 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
       case "requested":
         availableActions.push({ type: "accept", requiresPrice: true }, { type: "reject" });
         break;
-      case "borrower_confirmed":
-        availableActions.push({ type: "markAsPickedUp" });
-        break;
-      case "picked_up":
-        availableActions.push({ type: "markAsReturned" });
-        break;
       case "owner_accepted":
         availableActions.push({ type: "cancel" });
+        break;
+      // borrower can confirm pickup once owner confirms
+      case "borrower_confirmed":
+        availableActions.push({ type: "markAsPickedUp" });
         break;
     }
   } else {
@@ -50,13 +45,17 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
       case "owner_accepted":
         availableActions.push({ type: "confirm" }, { type: "cancel" });
         break;
+      case "picked_up":
+        availableActions.push({ type: "markAsReturned" });
+        break;
     }
   }
 
   return {
     ...dto,
+    tool: dto.tool ?? { id: dto.tool_id, name: "N/A" },
     currentUserRole,
-    counterparty,
+    counterparty: counterparty ?? { id: "unknown", username: "Nieznany" },
     availableActions,
   };
 };
