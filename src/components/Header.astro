@@ -1,12 +1,18 @@
 ---
 import { fetchProfileById } from "@/lib/services/profile.service";
+import { createSupabaseServerClient } from "@/db/supabase.client";
+import { Button } from "./ui/button";
 
-const { user, supabase } = Astro.locals;
+const { user } = Astro.locals;
 const isAuthenticated = !!user;
 
 let username: string | undefined;
 
-if (user) {
+if (isAuthenticated) {
+  const supabase = createSupabaseServerClient({
+    cookies: Astro.cookies,
+    headers: Astro.request.headers,
+  });
   const profile = await fetchProfileById(supabase, user.id);
   username = profile?.username;
 }
@@ -23,7 +29,7 @@ if (user) {
           >
         </li>
         {
-          isAuthenticated && (
+          isAuthenticated ? (
             <>
               <li>
                 <a
@@ -35,7 +41,7 @@ if (user) {
               </li>
               <li>
                 <a
-                  href="/tools/my-reservations"
+                  href="/reservations/my"
                   class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                 >
                   Moje rezerwacje
@@ -65,6 +71,35 @@ if (user) {
                   Mój profil
                 </a>
               </li>
+              <li>
+                <Button
+                  id="logout-button"
+                  type="button"
+                  variant="ghost"
+                  className="p-0 h-auto font-medium text-muted-foreground"
+                >
+                  Wyloguj
+                </Button>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <a
+                  href="/auth/login"
+                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  Zaloguj
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/auth/register"
+                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  Zarejestruj
+                </a>
+              </li>
             </>
           )
         }
@@ -81,3 +116,21 @@ if (user) {
     }
   </div>
 </header>
+
+<script>
+  const logoutButton = document.getElementById("logout-button");
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        window.location.href = "/";
+      } else {
+        console.error("Logout failed");
+        alert("Wystąpił błąd podczas wylogowywania.");
+      }
+    });
+  }
+</script>

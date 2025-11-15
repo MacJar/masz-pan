@@ -1,109 +1,93 @@
-import { defineMiddleware } from "astro:middleware";
-import { createServerClient } from "@supabase/ssr";
+import { createSupabaseServerClient } from '../db/supabase.client';
+import { defineMiddleware } from 'astro:middleware';
+import type { User } from '@supabase/supabase-js';
 
-import type { Database } from "../db/database.types.ts";
-
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables are not configured.");
-}
-
-export const onRequest = defineMiddleware(async (context, next) => {
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get: (key) => context.cookies.get(key)?.value,
-      set: (key, value, options) => context.cookies.set(key, value, options),
-      remove: (key, options) => context.cookies.delete(key, options),
-    },
-  });
-
-  context.locals.supabase = supabase;
-
-  let {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // In development, if AUTH_BYPASS is true and a user ID is provided, create a mock session.
-  const isDevAuthBypass =
-    import.meta.env.AUTH_BYPASS === "true" && import.meta.env.AUTH_BYPASS_USER_ID && import.meta.env.DEV;
-
-  if (isDevAuthBypass && !session) {
-    session = {
-      access_token: "mock-token-never-expires",
-      refresh_token: "mock-refresh-token",
-      expires_in: 9999999999,
-      expires_at: 9999999999,
-      token_type: "bearer",
-      user: {
-        id: import.meta.env.AUTH_BYPASS_USER_ID,
-        app_metadata: { provider: "email", providers: ["email"] },
-        user_metadata: { name: "Dev User" },
-        aud: "authenticated",
-        created_at: new Date().toISOString(),
-        email: "dev-user@example.com",
-      } as any, // Cast to any to avoid filling all User properties
-    };
-  }
-
-  context.locals.session = session;
-  context.locals.user = session?.user ?? null;
-
-  const { pathname } = context.url;
-
-  // --- Redirection logic ---
-
-  // List of paths that require authentication
-  const protectedPaths = ["/profile", "/tools/my", "/tools/new", "/tools/my-reservations", "/tokens"];
-  const protectedApiPaths = [
-    "/api/tools", 
-    "/api/reservations", 
-    "/api/profile"
+const PUBLIC_PATHS = [
+  '/tools',
+  '/auth/login',
+  '/auth/register',
+  '/auth/reset-password',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/reset-password',
+  '/api/auth/logout',
+  '/api/profile/geocode', // Public for address search in profile form
 ];
 
-  const isProtectedPath =
-    protectedPaths.some((p) => pathname.startsWith(p)) ||
-    protectedApiPaths.some((p) => pathname.startsWith(p) && !pathname.startsWith("/api/profile/geocode"));
+export const onRequest = defineMiddleware(
+  async ({ locals, cookies, url, request, redirect }, next) => {
+    const isPublicPath = PUBLIC_PATHS.some((path) => url.pathname.startsWith(path));
 
-  // 1. Handle unauthenticated users trying to access protected routes
-  if (!session && isProtectedPath) {
-    if (pathname.startsWith("/api/")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+    const isDevAuthBypass =
+      import.meta.env.AUTH_BYPASS === 'true' &&
+      import.meta.env.AUTH_BYPASS_USER_ID &&
+      import.meta.env.DEV;
+
+    let user: User | null = null;
+    
+    if (isDevAuthBypass) {
+      user = {
+        id: import.meta.env.AUTH_BYPASS_USER_ID,
+        app_metadata: { provider: 'email', providers: ['email'] },
+        user_metadata: { name: 'Dev User' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+      } as User;
     }
-    return context.redirect("/", 303);
-  }
 
-  // 2. Handle authenticated users with incomplete profiles
-  if (session) {
-    // Paths accessible even with an incomplete profile
-    const allowedPaths = ["/profile/edit", "/api/profile"];
-    const isAsset = /\.(gif|jpeg|jpg|png|svg|webp|js|css|woff|woff2|ttf|eot)$/i.test(pathname);
+    const supabase = createSupabaseServerClient({
+      cookies,
+      headers: request.headers,
+    });
 
-    if (!allowedPaths.some((p) => pathname.startsWith(p)) && !isAsset) {
+    if (!isDevAuthBypass) {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    }
+
+    if (user) {
+      locals.user = {
+        email: user.email,
+        id: user.id,
+      };
+    }
+
+    if (isPublicPath) {
+      return next();
+    }
+
+    if (!user) {
+      if (url.pathname.startsWith('/api/')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return redirect('/auth/login');
+    }
+
+    const allowedPathsIncompleteProfile = ['/profile', '/api/profile', '/api/auth/logout'];
+    const isAllowedPathForIncompleteProfile = allowedPathsIncompleteProfile.some((p) =>
+      url.pathname.startsWith(p),
+    );
+
+    if (!isAllowedPathForIncompleteProfile) {
       const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("is_complete")
-        .eq("id", session.user.id)
+        .from('profiles')
+        .select('is_complete')
+        .eq('id', user.id)
         .single();
-        
-      // Fail open in case of a DB error during profile fetch
-      if (error && error.code !== 'PGRST116') { // PGRST116 = 0 rows, which is a valid case
-        console.error("Middleware profile fetch error:", error.message);
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Middleware profile fetch error:', error.message);
       } else {
         const isProfileComplete = profile?.is_complete ?? false;
-  
         if (!isProfileComplete) {
-          return context.redirect("/profile/edit", 303);
+          return redirect('/profile');
         }
       }
     }
-  }
 
-  const response = await next();
-
-  return response;
-});
+    return next();
+  },
+);

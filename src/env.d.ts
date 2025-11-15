@@ -19,10 +19,19 @@ interface ImportMetaEnv {
   readonly SUPABASE_SERVICE_ROLE_KEY: string;
   readonly GOOGLE_MAPS_API_KEY: string;
   readonly OPENAI_API_KEY: string;
-  readonly AUTH_BYPASS: string; // "true" or "false"
-  readonly AUTH_BYPASS_USER_ID: string; // mock user id when bypassing
+  readonly AUTH_BYPASS?: string; // "true" or "false"
+  readonly AUTH_BYPASS_USER_ID?: string; // mock user id when bypassing
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+declare namespace App {
+  interface Locals {
+    user?: {
+      id: string;
+      email?: string;
+    };
+  }
 }

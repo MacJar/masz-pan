@@ -12,6 +12,7 @@ import {
 } from "../../lib/services/profile.service.ts";
 import { jsonError, jsonOk, jsonCreated } from "../../lib/api/responses.ts";
 import { z } from "zod";
+import { createSupabaseServerClient } from '../../db/supabase.client.ts';
 
 class ProfilePayloadError extends Error {
   constructor(message: string) {
@@ -25,12 +26,11 @@ export const prerender = false;
 /**
  * Returns the authenticated user's profile or an error describing why it cannot be retrieved.
  */
-export async function GET({ locals }: APIContext): Promise<Response> {
-  const supabase = locals.supabase;
-
-  if (!supabase) {
-    return jsonError(500, "internal_error", "Unexpected server configuration error.");
-  }
+export async function GET(context: APIContext): Promise<Response> {
+  const supabase = createSupabaseServerClient({
+    cookies: context.cookies,
+    headers: context.request.headers,
+  });
 
   try {
     const userId = await getAuthenticatedUserId(supabase);
@@ -61,7 +61,7 @@ export async function GET({ locals }: APIContext): Promise<Response> {
 
     return jsonOk(safeProfile);
   } catch (error) {
-    return handleUnexpectedError(error);
+    return handleUnexpectedError(error, { headers: context.request.headers, cookies: context.cookies });
   }
 }
 
@@ -70,12 +70,11 @@ export async function GET({ locals }: APIContext): Promise<Response> {
  * - 201 Created on insert
  * - 200 OK on update
  */
-export async function PUT({ locals, request }: APIContext): Promise<Response> {
-  const supabase = locals.supabase;
-
-  if (!supabase) {
-    return jsonError(500, "internal_error", "Unexpected server configuration error.");
-  }
+export async function PUT({ locals, request, cookies }: APIContext): Promise<Response> {
+  const supabase = createSupabaseServerClient({
+    cookies: cookies,
+    headers: request.headers,
+  });
 
   try {
     const userId = await getAuthenticatedUserId(supabase);
@@ -110,14 +109,19 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
     return created ? jsonCreated(profile) : jsonOk(profile);
   } catch (error) {
     if (error instanceof UsernameTakenError) {
-      await logAuditEvent(locals.supabase, "profile_update_failed", null, {
-        endpoint: "/api/profile",
-        reason: "username_taken",
-      });
+      await logAuditEvent(
+        createSupabaseServerClient({ cookies, headers: request.headers }),
+        "profile_update_failed",
+        null,
+        {
+          endpoint: "/api/profile",
+          reason: "username_taken",
+        },
+      );
       return jsonError(409, "username_taken", "Username is already taken.");
     }
 
-    return handleUnexpectedError(error);
+    return handleUnexpectedError(error, { cookies, headers: request.headers });
   }
 }
 
@@ -142,10 +146,13 @@ function parseZodIssues(error: z.ZodError): Array<{ path: string; message: strin
   return error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
 }
 
+function handleUnexpectedError(
+  error: unknown,
+  context: { headers: Headers; cookies: APIContext['cookies'] },
+): Response {
+  console.error('[API:/api/profile] Unexpected Error:', error);
 
-function handleUnexpectedError(error: unknown): Response {
   const details = extractErrorDetails(error);
-
   return jsonError(500, "internal_error", "Unexpected server error.", details);
 }
 
