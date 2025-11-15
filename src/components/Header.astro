@@ -1,20 +1,35 @@
 ---
-const { user } = Astro.locals;
-const isDevAuthBypass = import.meta.env.AUTH_BYPASS_USER_ID && import.meta.env.DEV;
-const isAuthenticated = user || isDevAuthBypass;
+import { fetchProfileById } from "@/lib/services/profile.service";
+
+const { user, supabase } = Astro.locals;
+const isAuthenticated = !!user;
+
+let username: string | undefined;
+
+if (user) {
+  const profile = await fetchProfileById(supabase, user.id);
+  username = profile?.username;
+}
 ---
 <header class="bg-background border-b">
-  <nav class="container mx-auto flex h-16 items-center justify-between">
-    <a href="/" class="text-xl font-bold">Masz Pan</a>
-    <ul class="flex gap-4 items-center">
-      <li><a href="/tools/search" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Wyszukaj narzędzie</a></li>
-      {isAuthenticated && <>
-        <li><a href="/tools/my" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Moje narzędzia</a></li>
-        <li><a href="/tools/my-reservations" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Moje rezerwacje</a></li>
-        <li><a href="/tokens" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Żetony</a></li>
-        <li><a href="/tools/new" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Dodaj narzędzie</a></li>
-        <li><a href="/profile" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Mój profil</a></li>
-      </>}
-    </ul>
-  </nav>
+  <div class="container mx-auto">
+    <nav class="flex h-16 items-center justify-between">
+      <a href="/" class="text-xl font-bold">Masz Pan</a>
+      <ul class="flex gap-4 items-center">
+        <li><a href="/tools/search" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Wyszukaj narzędzie</a></li>
+        {isAuthenticated && <>
+          <li><a href="/tools/my" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Moje narzędzia</a></li>
+          <li><a href="/tools/my-reservations" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Moje rezerwacje</a></li>
+          <li><a href="/tokens" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Żetony</a></li>
+          <li><a href="/tools/new" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Dodaj narzędzie</a></li>
+          <li><a href="/profile" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">Mój profil</a></li>
+        </>}
+      </ul>
+    </nav>
+    {username && (
+      <div class="flex justify-end pb-2 text-sm text-muted-foreground">
+        <span>Zalogowany jako: <strong class="font-semibold text-foreground">{username}</strong></span>
+      </div>
+    )}
+  </div>
 </header>
