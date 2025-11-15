@@ -80,7 +80,9 @@ export interface ToolSummaryDTO {
 /**
  * Tool row suitable for API responses. Internal search column omitted.
  */
-export type ToolDTO = Omit<Row<"tools">, "search_name_tsv">;
+export type ToolDTO = Omit<Row<"tools">, "search_name_tsv"> & {
+  main_image_url: string | null;
+};
 
 export type CreateToolCommand = Pick<Insert<"tools">, "name" | "description" | "suggested_price_tokens">;
 

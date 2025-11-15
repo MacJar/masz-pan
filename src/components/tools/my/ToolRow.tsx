@@ -13,11 +13,20 @@ type ToolRowProps = {
 const ToolRow: React.FC<ToolRowProps> = ({ tool, onUpdate, onArchive }) => {
   return (
     <div className="flex items-center justify-between p-4 border-b">
-      <div className="flex flex-col">
-        <span className="font-semibold">{tool.name}</span>
-        <span className="text-sm text-gray-500">
-          Utworzono: {tool.createdAt} | Ostatnia zmiana: {tool.updatedAt}
-        </span>
+      <div className="flex items-center space-x-4">
+        {tool.imageUrl && (
+          <img
+            src={tool.imageUrl}
+            alt={tool.name}
+            className="w-16 h-16 object-cover rounded-md"
+          />
+        )}
+        <div className="flex flex-col">
+          <span className="font-semibold">{tool.name}</span>
+          <span className="text-sm text-gray-500">
+            Utworzono: {tool.createdAt} | Ostatnia zmiana: {tool.updatedAt}
+          </span>
+        </div>
       </div>
       <div className="flex items-center space-x-4">
         <Badge variant={tool.status === 'active' ? 'default' : 'secondary'}>

@@ -13,6 +13,7 @@ export interface MyToolListItemViewModel {
   canUnpublish: boolean;
   canArchive: boolean;
   canEdit: boolean;
+  imageUrl: string | null;
 }
 
 const mapToolDTOToViewModel = (tool: ToolDTO): MyToolListItemViewModel => ({
@@ -25,6 +26,7 @@ const mapToolDTOToViewModel = (tool: ToolDTO): MyToolListItemViewModel => ({
   canUnpublish: tool.status === "active",
   canArchive: tool.status !== "archived",
   canEdit: tool.status !== "archived",
+  imageUrl: tool.main_image_url,
 });
 
 const PAGE_LIMIT = 10;

@@ -65,7 +65,17 @@ export class ToolsService {
   }
 
   async getToolsByOwner(params: GetToolsByOwnerParams) {
-    let query = this.supabase.from("tools").select("*").eq("owner_id", params.ownerId).limit(params.limit);
+    let query = this.supabase
+      .from("tools")
+      .select(
+        `
+        *,
+        main_image_url:tool_images(storage_key)
+      `
+      )
+      .eq("owner_id", params.ownerId)
+      .eq("tool_images.position", 0)
+      .limit(params.limit);
 
     if (params.status && params.status !== "all") {
       query = query.eq("status", params.status);
@@ -86,10 +96,18 @@ export class ToolsService {
       throw new SupabaseQueryError("Failed to fetch tools by owner", error.code, error);
     }
 
-    const next_cursor = data.length === params.limit ? data[data.length - 1].created_at : null;
+    const { data: storagePublicUrlData } = this.supabase.storage.from("tool_images").getPublicUrl("dummy_path");
+    const storageUrl = storagePublicUrlData.publicUrl.replace("/dummy_path", "");
+
+    const items = data.map((tool) => ({
+      ...tool,
+      main_image_url: tool.main_image_url[0] ? `${storageUrl}/${tool.main_image_url[0].storage_key}` : null,
+    }));
+
+    const next_cursor = items.length === params.limit ? items[items.length - 1].created_at : null;
 
     return {
-      items: data as ToolDTO[],
+      items: items as ToolDTO[],
       next_cursor,
     };
   }
