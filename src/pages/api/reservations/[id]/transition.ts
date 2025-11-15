@@ -33,6 +33,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
+    console.error(`[API] Error transitioning reservation ${reservationId}:`, error);
     return handleApiError(error);
   }
 };

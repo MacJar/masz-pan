@@ -18,7 +18,7 @@ export const getMyReservations = async (params: {
 export const transitionReservation = async (
   id: string,
   new_status: ReservationStatus,
-  payload?: { price_tokens?: number }
+  payload?: { price_tokens?: number; cancelled_reason?: string }
 ) => {
   const response = await fetch(`/api/reservations/${id}/transition`, {
     method: "POST",

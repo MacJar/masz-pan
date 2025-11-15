@@ -120,7 +120,7 @@ export const useReservationsManager = () => {
   const transitionState = async (
     id: string,
     newStatus: ReservationStatus,
-    payload?: { price_tokens?: number }
+    payload?: { price_tokens?: number; cancelled_reason?: string }
   ) => {
     const role = activeTab;
     const originalReservations = [...reservations[role]];
@@ -172,7 +172,7 @@ export const useReservationsManager = () => {
     // This is essentially a state transition to "rejected"
     // In a real API, this might be a separate endpoint, but here we model it as a transition
     // The reason might be passed in the payload if the API supports it.
-    await transitionState(id, 'rejected');
+    await transitionState(id, "rejected", { cancelled_reason: reason });
   }
 
   return {

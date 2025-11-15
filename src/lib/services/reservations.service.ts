@@ -246,6 +246,7 @@ export class ReservationsService {
       p_reservation_id: reservationId,
       p_new_status: command.new_status,
       p_price_tokens: command.price_tokens,
+      p_cancelled_reason: command.cancelled_reason,
     });
 
     if (rpcError) {

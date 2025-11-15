@@ -30,6 +30,7 @@ export const ReservationTransitionCommandSchema = z
   .object({
     new_status: z.enum(["owner_accepted", "borrower_confirmed", "picked_up", "returned", "cancelled", "rejected"]),
     price_tokens: z.number().int().positive().optional(),
+    cancelled_reason: z.string().optional(),
   })
   .refine(
     (data) => {
