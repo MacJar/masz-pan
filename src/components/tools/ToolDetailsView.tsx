@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import type { ToolWithImagesDTO } from "@/types";
 import { useOwnerProfile } from "@/components/hooks/useOwnerProfile";
+import { toast } from "sonner";
 
 import ImageGallery from "./ImageGallery";
 import ToolInfo from "./ToolInfo";
 import OwnerBadge from "./OwnerBadge";
 import ActionBar from "./ActionBar";
+import { createReservation } from "../../lib/api/reservations";
+import type { Reservation } from "../../types";
 
 interface ToolDetailsViewProps {
 	initialToolData: ToolWithImagesDTO;
@@ -14,6 +17,24 @@ interface ToolDetailsViewProps {
 
 export default function ToolDetailsView({ initialToolData, currentUserId }: ToolDetailsViewProps) {
 	const { owner, isLoading: isOwnerLoading, error: ownerError } = useOwnerProfile(initialToolData.owner_id);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const handleReservationRequest = async () => {
+		setIsSubmitting(true);
+		setError(null);
+		try {
+			const newReservation: Reservation = await createReservation(initialToolData.id, initialToolData.owner_id);
+			toast.success("Zapytanie o rezerwację zostało wysłane!");
+			window.location.href = "/profile?tab=reservations";
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : "Wystąpił nieznany błąd";
+			setError(errorMessage);
+			toast.error(`Błąd: ${errorMessage}`);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
 	return (
 		<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -32,10 +53,10 @@ export default function ToolDetailsView({ initialToolData, currentUserId }: Tool
 					ownerId={initialToolData.owner_id}
 					currentUserId={currentUserId}
 					toolStatus={initialToolData.status}
-					onReservationRequest={() => {
-						/* TODO: Implement reservation request logic */
-					}}
+					isSubmitting={isSubmitting}
+					onReservationRequest={handleReservationRequest}
 				/>
+				{error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 			</div>
 		</div>
 	);

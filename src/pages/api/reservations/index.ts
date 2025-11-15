@@ -1,41 +1,31 @@
 
 import type { APIRoute } from 'astro';
-import { CreateReservationSchema } from '../../../lib/schemas/reservation.schema';
+import { CreateReservationSchema, GetReservationsQuerySchema } from '../../../lib/schemas/reservation.schema';
 import { ReservationsService } from '../../../lib/services/reservations.service';
-import { AppError } from '../../../lib/services/errors.service';
-import { GetReservationsQuerySchema } from '../../../lib/schemas/reservation.schema';
 import { handleApiError } from '../../../lib/services/errors.service';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { user } = locals;
-
+  const { user, supabase } = locals;
   if (!user) {
-    return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
   }
 
   try {
+    const reservationsService = new ReservationsService(supabase);
+
     const body = await request.json();
-    const validation = CreateReservationSchema.safeParse(body);
+    const command = CreateReservationSchema.omit({ borrower_id: true }).parse({
+      tool_id: body.tool_id,
+      owner_id: body.owner_id,
+    });
 
-    if (!validation.success) {
-      return new Response(JSON.stringify({ message: 'Invalid input', errors: validation.error.flatten() }), {
-        status: 400,
-      });
-    }
+    const newReservation = await reservationsService.createReservation(command, user.id);
 
-    const command = validation.data;
-    const reservationsService = new ReservationsService(locals.supabase);
-    const reservation = await reservationsService.createReservation(command, user.id);
-
-    return new Response(JSON.stringify(reservation), { status: 201 });
+    return new Response(JSON.stringify(newReservation), { status: 201 });
   } catch (error) {
-    if (error instanceof AppError) {
-      return new Response(JSON.stringify({ message: error.message }), { status: error.status });
-    }
-    console.error(error);
-    return new Response(JSON.stringify({ message: 'Internal Server Error' }), { status: 500 });
+    return handleApiError(error);
   }
 };
 

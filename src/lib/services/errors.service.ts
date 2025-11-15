@@ -102,3 +102,39 @@ export class SupabaseQueryError extends InternalServerError {
     this.dbCode = dbCode;
   }
 }
+
+/**
+ * Handles errors in API routes by returning a standardized JSON response.
+ * @param error - The error object caught in the catch block.
+ * @returns A Response object with the appropriate status code and error message.
+ */
+export function handleApiError(error: unknown): Response {
+  if (error instanceof AppError) {
+    const errorBody = {
+      error: {
+        code: error.code,
+        message: error.message,
+        ...(error instanceof BadRequestError && error.details ? { details: error.details } : {}),
+      },
+    };
+    return new Response(JSON.stringify(errorBody), {
+      status: error.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Log unexpected errors to the console for debugging
+  console.error("An unexpected error occurred:", error);
+
+  const errorBody = {
+    error: {
+      code: "INTERNAL_SERVER_ERROR",
+      message: "An unexpected error occurred. Please try again later.",
+    },
+  };
+
+  return new Response(JSON.stringify(errorBody), {
+    status: 500,
+    headers: { "Content-Type": "application/json" },
+  });
+}

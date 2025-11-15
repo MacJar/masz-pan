@@ -20,9 +20,9 @@ type ReservationsState = {
 const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): ReservationViewModel => {
   const currentUserRole = dto.owner_id === currentUserId ? "owner" : "borrower";
   const counterpartyId = currentUserRole === "owner" ? dto.borrower_id : dto.owner_id;
-  // This is a simplification. In a real app, we'd probably fetch counterparty details separately.
-  // For now, we'll just use the ID. The username is not available on the DTO.
-  const counterparty = { id: counterpartyId, username: `User ${counterpartyId.substring(0, 6)}` };
+  
+  const counterpartyUsername = counterpartyId ? `User ${counterpartyId.substring(0, 6)}` : "Nieznany użytkownik";
+  const counterparty = { id: counterpartyId, username: counterpartyUsername };
 
   const availableActions: ReservationAction[] = [];
 

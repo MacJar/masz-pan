@@ -6,20 +6,14 @@ import { CreateToolImageUploadUrlCommand } from "../../../../../types";
 import { AppError, ForbiddenError, NotFoundError } from "../../../../../lib/services/errors.service";
 import { ToolsService } from "../../../../../lib/services/tools.service";
 
-// TODO: Replace with real authentication
-const MOCK_USER_ID = "1f587053-c01e-4aa6-8931-33567ca6a080";
-
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  // const session = locals?.session;
-  //
-  // if (!session?.user) {
-  //   return new Response(JSON.stringify({ error: { message: "Unauthorized" } }), {
-  //     status: 401,
-  //     headers: { "Content-Type": "application/json" },
-  //   });
-  // }
-  if (!MOCK_USER_ID) {
-    throw new Error("MOCK_USER_ID is not defined");
+  const session = locals?.session;
+
+  if (!session?.user) {
+    return new Response(JSON.stringify({ error: { message: "Unauthorized" } }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const toolId = params.id;
@@ -57,7 +51,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   const toolsService = new ToolsService(locals.supabase);
 
   try {
-    const result = await toolsService.createSignedImageUploadUrl(toolId, MOCK_USER_ID, command);
+    const result = await toolsService.createSignedImageUploadUrl(toolId, session.user.id, command);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

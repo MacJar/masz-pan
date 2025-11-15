@@ -1,15 +1,23 @@
 import React from "react";
 import type { ToolStatus } from "@/types";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface ActionBarProps {
 	ownerId: string;
 	currentUserId: string | null;
 	toolStatus: ToolStatus;
+	isSubmitting: boolean;
 	onReservationRequest: () => void;
 }
 
-export default function ActionBar({ ownerId, currentUserId, toolStatus, onReservationRequest }: ActionBarProps) {
+export default function ActionBar({
+	ownerId,
+	currentUserId,
+	toolStatus,
+	isSubmitting,
+	onReservationRequest,
+}: ActionBarProps) {
 	const isOwner = currentUserId === ownerId;
 
 	if (isOwner) {
@@ -20,11 +28,20 @@ export default function ActionBar({ ownerId, currentUserId, toolStatus, onReserv
 		);
 	}
 
-	const isAvailable = toolStatus === "available";
+	const isAvailable = toolStatus === "active";
 
 	return (
-		<Button onClick={onReservationRequest} disabled={!isAvailable} className="w-full">
-			{isAvailable ? "Zgłoś zapytanie" : "Narzędzie niedostępne"}
+		<Button onClick={onReservationRequest} disabled={!isAvailable || isSubmitting} className="w-full">
+			{isSubmitting ? (
+				<>
+					<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					<span>Wysyłanie...</span>
+				</>
+			) : isAvailable ? (
+				"Zgłoś zapytanie"
+			) : (
+				"Narzędzie niedostępne"
+			)}
 		</Button>
 	);
 }
