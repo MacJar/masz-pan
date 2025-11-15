@@ -35,6 +35,13 @@ export interface ToolSearchParams {
   cursor?: string | null;
 }
 
+export interface PublicToolSearchParams {
+  lon: number;
+  lat: number;
+  limit: number;
+  cursor?: string | null;
+}
+
 export interface DeleteToolImageCommand {
   toolId: string;
   imageId: string;
@@ -352,6 +359,86 @@ export class ToolsService {
     return newTool;
   }
 
+  async getActiveToolsNearProfile(userId: string, params: { limit: number; cursor?: string | null; }): Promise<ToolSearchPageDTO> {
+    // 1) Ensure profile has geocoded location
+    const profile = await fetchProfileById(this.supabase, userId);
+    if (!profile || !profile.location_geog) {
+      throw new MissingLocationError();
+    }
+
+    // 2) Decode cursor (if any)
+    const after = this.decodeCursor(params.cursor);
+
+    // 3) Query DB via RPC
+    const { data, error } = await this.supabase.rpc("nearby_tools", {
+      p_user_id: userId,
+      p_limit: params.limit,
+      p_after: after,
+    });
+    if (error) {
+      throw new SupabaseQueryError("Failed to search nearby tools.", error.code, error);
+    }
+
+    const rows = (Array.isArray(data) ? data : []) as RpcRow[];
+    const items = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      distance_m: r.distance_m,
+      main_image_url: r.main_image_url,
+    }));
+
+    // 4) Build next cursor
+    const last = rows.length > 0 ? rows[rows.length - 1] : null;
+    const next_cursor = last?.cursor_key ? this.encodeCursor(last.cursor_key) : null;
+    const { data: storagePublicUrlData } = this.supabase.storage.from("tool_images").getPublicUrl("dummy_path");
+    const storageUrl = storagePublicUrlData.publicUrl.replace("/dummy_path", "");
+    return {
+      items: items.map((item) => ({
+        ...item,
+        main_image_url: item.main_image_url ? `${storageUrl}/${item.main_image_url}` : null,
+      })),
+      next_cursor,
+    };
+  }
+
+  async getPublicActiveToolsNearLocation(params: PublicToolSearchParams): Promise<ToolSearchPageDTO> {
+    // 1) Decode cursor (if any)
+    const after = this.decodeCursor(params.cursor);
+
+    // 2) Query DB via RPC
+    const { data, error } = await this.supabase.rpc("public_nearby_tools", {
+      p_lon: params.lon,
+      p_lat: params.lat,
+      p_limit: params.limit,
+      p_after: after,
+    });
+    if (error) {
+      throw new SupabaseQueryError("Failed to search public nearby tools.", error.code, error);
+    }
+
+    const rows = (Array.isArray(data) ? data : []) as RpcRow[];
+    const items = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      distance_m: r.distance_m,
+      main_image_url: r.main_image_url,
+    }));
+
+    // 3) Build next cursor and full image URLs
+    const last = rows.length > 0 ? rows[rows.length - 1] : null;
+    const next_cursor = last?.cursor_key ? this.encodeCursor(last.cursor_key) : null;
+    const { data: storagePublicUrlData } = this.supabase.storage.from("tool_images").getPublicUrl("dummy_path");
+    const storageUrl = storagePublicUrlData.publicUrl.replace("/dummy_path", "");
+
+    return {
+      items: items.map((item) => ({
+        ...item,
+        main_image_url: item.main_image_url ? `${storageUrl}/${item.main_image_url}` : null,
+      })),
+      next_cursor,
+    };
+  }
+
   async searchActiveToolsNearProfile(userId: string, params: ToolSearchParams): Promise<ToolSearchPageDTO> {
     // 1) Ensure profile has geocoded location
     const profile = await fetchProfileById(this.supabase, userId);
@@ -378,13 +465,21 @@ export class ToolsService {
       id: r.id,
       name: r.name,
       distance_m: r.distance_m,
+      main_image_url: r.main_image_url,
     }));
 
     // 4) Build next cursor
     const last = rows.length > 0 ? rows[rows.length - 1] : null;
     const next_cursor = last?.cursor_key ? this.encodeCursor(last.cursor_key) : null;
-
-    return { items, next_cursor };
+    const { data: storagePublicUrlData } = this.supabase.storage.from("tool_images").getPublicUrl("dummy_path");
+    const storageUrl = storagePublicUrlData.publicUrl.replace("/dummy_path", "");
+    return {
+      items: items.map((item) => ({
+        ...item,
+        main_image_url: item.main_image_url ? `${storageUrl}/${item.main_image_url}` : null,
+      })),
+      next_cursor,
+    };
   }
 
   private decodeCursor(encoded?: string | null): { lastDistance: number; lastId: string } | null {
@@ -509,5 +604,6 @@ interface RpcRow {
   id: string;
   name: string;
   distance_m: number;
+  main_image_url: string | null;
   cursor_key?: { lastDistance: number; lastId: string } | null;
 }

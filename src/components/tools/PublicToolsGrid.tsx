@@ -1,29 +1,34 @@
 import React from "react";
-import type { ToolSummaryViewModel } from "@/types";
+import type { ToolSearchItemVM } from "@/lib/api/tools.search.client";
 import PublicToolCard from "@/components/tools/PublicToolCard";
+import InfiniteScrollSentinel from "./InfiniteScrollSentinel";
 
 interface PublicToolsGridProps {
-  tools: ToolSummaryViewModel[];
+  items: ToolSearchItemVM[];
+  onLoadMore: () => void;
+  hasNext: boolean;
+  isLoadingMore: boolean;
 }
 
-const PublicToolsGrid: React.FC<PublicToolsGridProps> = ({ tools }) => {
-  if (tools.length === 0) {
-    return (
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Narzędzia</h2>
-        <p className="text-muted-foreground">Użytkownik nie udostępnia obecnie żadnych narzędzi.</p>
-      </section>
-    );
-  }
-
+const PublicToolsGrid: React.FC<PublicToolsGridProps> = ({ items, onLoadMore, hasNext, isLoadingMore }) => {
   return (
     <section>
-      <h2 className="text-2xl font-semibold mb-4">Narzędzia</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tools.map((tool) => (
-          <PublicToolCard key={tool.id} tool={tool} />
+        {items.map((item) => (
+          <PublicToolCard
+            key={item.id}
+            tool={{
+              id: item.id,
+              name: item.name,
+              imageUrl: item.mainImageUrl,
+              href: `/tools/${item.id}`,
+              description: "", // PublicToolCard requires description, but search results don't have it.
+              distanceText: item.distanceText,
+            }}
+          />
         ))}
       </div>
+      <InfiniteScrollSentinel onVisible={onLoadMore} enabled={hasNext && !isLoadingMore} />
     </section>
   );
 };

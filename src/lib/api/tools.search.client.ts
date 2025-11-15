@@ -7,11 +7,26 @@ export interface FetchToolsParams {
   signal?: AbortSignal;
 }
 
+export interface FetchPublicNearbyToolsParams {
+  lat: number;
+  lon: number;
+  limit?: number;
+  cursor?: string | null;
+  signal?: AbortSignal;
+}
+
+export interface FetchNearbyToolsParams {
+  limit?: number;
+  cursor?: string | null;
+  signal?: AbortSignal;
+}
+
 export interface ToolSearchItemVM {
   id: string;
   name: string;
   distanceMeters: number;
   distanceText: string;
+  mainImageUrl: string | null;
 }
 
 export interface ToolSearchPageVM {
@@ -39,6 +54,7 @@ export function mapItemToVM(dto: ToolSearchItemDTO): ToolSearchItemVM {
     name: dto.name,
     distanceMeters,
     distanceText: formatDistance(distanceMeters),
+    mainImageUrl: dto.main_image_url,
   };
 }
 
@@ -72,6 +88,70 @@ export async function fetchTools(params: FetchToolsParams): Promise<ToolSearchPa
   const text = await res.text();
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const parsed = isJson && text ? (JSON.parse(text) as unknown) : null;
+
+  if (!res.ok) {
+    const err = (parsed as ApiErrorDTO | null)?.error ?? { code: "internal_error", message: "Unexpected error." };
+    throw { error: err } satisfies ApiErrorDTO;
+  }
+
+  return (parsed ?? { items: [], next_cursor: null }) as ToolSearchPageDTO;
+}
+
+/**
+ * Fetch raw DTO page from backend.
+ * Throws ApiErrorDTO on non-2xx responses.
+ */
+export async function fetchNearbyTools(params: FetchNearbyToolsParams): Promise<ToolSearchPageDTO> {
+  const search = new URLSearchParams();
+  if (params.limit && Number.isFinite(params.limit)) {
+    search.set("limit", String(params.limit));
+  }
+  if (params.cursor) {
+    search.set("cursor", params.cursor);
+  }
+
+  const res = await fetch(`/api/tools/nearby?${search.toString()}`, {
+    method: "GET",
+    headers: { accept: "application/json" },
+    signal: params.signal,
+  });
+
+  const text = await res.text();
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const parsed = isJson && text ? (JSON.parse(text) as unknown) : null;
+
+  if (!res.ok) {
+    const err = (parsed as ApiErrorDTO | null)?.error ?? { code: "internal_error", message: "Unexpected error." };
+    throw { error: err } satisfies ApiErrorDTO;
+  }
+
+  return (parsed ?? { items: [], next_cursor: null }) as ToolSearchPageDTO;
+}
+
+/**
+ * Fetch raw DTO page from backend for anonymous users.
+ * Throws ApiErrorDTO on non-2xx responses.
+ */
+export async function fetchPublicNearbyTools(params: FetchPublicNearbyToolsParams): Promise<ToolSearchPageDTO> {
+  const search = new URLSearchParams();
+  search.set("lat", String(params.lat));
+  search.set("lon", String(params.lon));
+  if (params.limit && Number.isFinite(params.limit)) {
+    search.set("limit", String(params.limit));
+  }
+  if (params.cursor) {
+    search.set("cursor", params.cursor);
+  }
+
+  const res = await fetch(`/api/tools/public-nearby?${search.toString()}`, {
+    method: "GET",
+    headers: { accept: "application/json" },
+    signal: params.signal,
+  });
+
+  const text = await res.text();
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const parsed = isJson && text ? JSON.parse(text) : null;
 
   if (!res.ok) {
     const err = (parsed as ApiErrorDTO | null)?.error ?? { code: "internal_error", message: "Unexpected error." };

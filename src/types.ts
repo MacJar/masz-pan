@@ -105,9 +105,12 @@ export interface ToolArchivedResponseDto {
 export type ToolListItemDTO = Pick<ToolDTO, "id" | "name" | "status">;
 export type ToolListPageDTO = CursorPage<ToolListItemDTO>;
 
-export type ToolSearchItemDTO = Pick<ToolDTO, "id" | "name"> & {
+export interface ToolSearchItemDTO {
+  id: string;
+  name: string;
   distance_m: number;
-};
+  main_image_url: string | null;
+}
 export type ToolSearchPageDTO = CursorPage<ToolSearchItemDTO>;
 
 // =====================

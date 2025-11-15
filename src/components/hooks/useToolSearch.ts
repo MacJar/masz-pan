@@ -1,15 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ToolSearchPageDTO } from "@/types";
-import { fetchTools, mapPageToVM, type ToolSearchItemVM } from "@/lib/api/tools.search.client";
+import {
+  fetchNearbyTools,
+  fetchTools,
+  mapPageToVM,
+  type ToolSearchItemVM,
+  fetchPublicNearbyTools,
+} from "@/lib/api/tools.search.client";
 import { useDebouncedValue } from "./useDebouncedValue";
+import type { GeolocationCoordinates } from "./AnonymousLocationRequest";
 
-export type ToolSearchStatus = "idle" | "loading" | "ready" | "error";
+export type ToolSearchMode = "search" | "nearby";
+export type ToolSearchStatus = "idle" | "loading" | "ready" | "error" | "anonymous";
 
 export interface ToolSearchState {
   query: string;
   items: ToolSearchItemVM[];
   nextCursor: string | null;
   status: ToolSearchStatus;
+  mode: ToolSearchMode;
   isLoadingMore: boolean;
   errorCode?: string;
   errorDetails?: unknown;
@@ -20,6 +29,7 @@ export interface ToolSearchActions {
   submit(): void;
   loadNext(): void;
   retry(): void;
+  startPublicNearby(coords: GeolocationCoordinates): void;
 }
 
 export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSearchActions] {
@@ -29,6 +39,7 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
   const [items, setItems] = useState<ToolSearchItemVM[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [status, setStatus] = useState<ToolSearchStatus>("idle");
+  const [mode, setMode] = useState<ToolSearchMode>("search");
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [errorDetails, setErrorDetails] = useState<unknown | undefined>(undefined);
@@ -36,6 +47,7 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
   const abortRef = useRef<AbortController | null>(null);
   const lastOpRef = useRef<"first" | "next" | null>(null);
   const lastQueryRef = useRef<string>(query);
+  const lastCoordsRef = useRef<GeolocationCoordinates | null>(null);
 
   const resetError = useCallback(() => {
     setErrorCode(undefined);
@@ -75,6 +87,84 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
       });
   }, [resetError]);
 
+  const startNearby = useCallback(() => {
+    // Cancel any previous request
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    lastOpRef.current = "first";
+    lastQueryRef.current = "";
+
+    setStatus("loading");
+    setMode("nearby");
+    setIsLoadingMore(false);
+    setItems([]);
+    setNextCursor(null);
+    resetError();
+
+    fetchNearbyTools({ limit: 20, signal: abortRef.current.signal })
+      .then((page: ToolSearchPageDTO) => {
+        const vm = mapPageToVM(page);
+        setItems(vm.items);
+        setNextCursor(vm.next_cursor);
+        setStatus("ready");
+      })
+      .catch((err: unknown) => {
+        // Ignore abort noise
+        if (abortRef.current?.signal.aborted) {
+          return;
+        }
+        const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
+        const details = (err as { error?: { details?: unknown } })?.error?.details;
+        setErrorCode(code);
+        setErrorDetails(details);
+        if (code === "auth_required") {
+          setStatus("anonymous");
+        } else {
+          setStatus("error");
+        }
+      });
+  }, [resetError]);
+
+  const startPublicNearby = useCallback((coords: GeolocationCoordinates) => {
+    // Cancel any previous request
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    lastOpRef.current = "first";
+    lastQueryRef.current = "";
+    lastCoordsRef.current = coords;
+
+    setStatus("loading");
+    setMode("nearby");
+    setIsLoadingMore(false);
+    setItems([]);
+    setNextCursor(null);
+    resetError();
+
+    fetchPublicNearbyTools({
+      limit: 20,
+      signal: abortRef.current.signal,
+      lat: coords.latitude,
+      lon: coords.longitude,
+    })
+      .then((page: ToolSearchPageDTO) => {
+        const vm = mapPageToVM(page);
+        setItems(vm.items);
+        setNextCursor(vm.next_cursor);
+        setStatus("ready");
+      })
+      .catch((err: unknown) => {
+        // Ignore abort noise
+        if (abortRef.current?.signal.aborted) {
+          return;
+        }
+        const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
+        const details = (err as { error?: { details?: unknown } })?.error?.details;
+        setErrorCode(code);
+        setErrorDetails(details);
+        setStatus("error");
+      });
+  }, [resetError]);
+
   const loadNext = useCallback(() => {
     if (!nextCursor || isLoadingMore || status === "loading") {
       return;
@@ -87,7 +177,22 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
     setIsLoadingMore(true);
     resetError();
 
-    fetchTools({ q, limit: 20, cursor: nextCursor, signal: abortRef.current.signal })
+    let promise: Promise<ToolSearchPageDTO>;
+    if (mode === "search") {
+      promise = fetchTools({ q, limit: 20, cursor: nextCursor, signal: abortRef.current.signal });
+    } else if (status === "anonymous" && lastCoordsRef.current) {
+      promise = fetchPublicNearbyTools({
+        limit: 20,
+        cursor: nextCursor,
+        signal: abortRef.current.signal,
+        lat: lastCoordsRef.current.latitude,
+        lon: lastCoordsRef.current.longitude,
+      });
+    } else {
+      promise = fetchNearbyTools({ limit: 20, cursor: nextCursor, signal: abortRef.current.signal });
+    }
+
+    promise
       .then((page: ToolSearchPageDTO) => {
         const vm = mapPageToVM(page);
         setItems((prev) => prev.concat(vm.items));
@@ -111,7 +216,7 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
         setErrorDetails(details);
         setIsLoadingMore(false);
       });
-  }, [isLoadingMore, nextCursor, resetError, status]);
+  }, [isLoadingMore, nextCursor, resetError, status, mode]);
 
   const submit = useCallback(() => {
     const q = query.trim();
@@ -124,11 +229,23 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
   const retry = useCallback(() => {
     if (lastOpRef.current === "next") {
       // On next-page failure we prefer retrying the first page to simplify state
-      startFirstPage(lastQueryRef.current.trim());
+      if (mode === "search") {
+        startFirstPage(lastQueryRef.current.trim());
+      } else if (status === "anonymous" && lastCoordsRef.current) {
+        startPublicNearby(lastCoordsRef.current);
+      } else {
+        startNearby();
+      }
       return;
     }
-    startFirstPage(lastQueryRef.current.trim());
-  }, [startFirstPage]);
+    if (mode === "search") {
+      startFirstPage(lastQueryRef.current.trim());
+    } else if (status === "anonymous" && lastCoordsRef.current) {
+      startPublicNearby(lastCoordsRef.current);
+    } else {
+      startNearby();
+    }
+  }, [startFirstPage, startNearby, startPublicNearby, mode, status]);
 
   // Trigger on debounced query change
   useEffect(() => {
@@ -143,6 +260,15 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
     startFirstPage(q);
   }, [queryDebounced, startFirstPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Initial load
+  useEffect(() => {
+    if (initialQuery) {
+      startFirstPage(initialQuery);
+    } else {
+      startNearby();
+    }
+  }, [initialQuery, startFirstPage, startNearby]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -156,11 +282,12 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
       items,
       nextCursor,
       status,
+      mode,
       isLoadingMore,
       errorCode,
       errorDetails,
     }),
-    [errorCode, errorDetails, isLoadingMore, items, nextCursor, query, status]
+    [errorCode, errorDetails, isLoadingMore, items, nextCursor, query, status, mode]
   );
 
   const actions: ToolSearchActions = useMemo(
@@ -169,8 +296,9 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
       submit,
       loadNext,
       retry,
+      startPublicNearby,
     }),
-    [loadNext, retry, submit]
+    [loadNext, retry, submit, startPublicNearby]
   );
 
   return [state, actions];

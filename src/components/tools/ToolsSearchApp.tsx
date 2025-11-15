@@ -7,6 +7,8 @@ import SkeletonList from "./SkeletonList";
 import ErrorState from "./ErrorState";
 import EmptyState from "./EmptyState";
 import ResultsList from "./ResultsList";
+import PublicToolsGrid from "./PublicToolsGrid";
+import { AnonymousLocationRequest } from "./AnonymousLocationRequest";
 
 export interface ToolsSearchAppProps {
   initialQuery?: string;
@@ -35,6 +37,8 @@ export default function ToolsSearchApp(props: ToolsSearchAppProps): JSX.Element 
         reason={state.errorCode === "profile_location_missing" ? "missing_location" : "no_results"}
       />
 
+      {state.status === "anonymous" && <AnonymousLocationRequest onLocationFound={actions.startPublicNearby} />}
+
       {state.status === "loading" && <SkeletonList />}
 
       {state.status === "error" && (
@@ -48,12 +52,27 @@ export default function ToolsSearchApp(props: ToolsSearchAppProps): JSX.Element 
       {state.status === "ready" && state.items.length === 0 && <EmptyState query={state.query} />}
 
       {state.status === "ready" && state.items.length > 0 && (
-        <ResultsList
-          items={state.items}
-          onLoadMore={actions.loadNext}
-          hasNext={Boolean(state.nextCursor)}
-          isLoadingMore={state.isLoadingMore}
-        />
+        <>
+          {state.mode === "nearby" && (
+            <h2 className="my-6 text-center text-xl font-semibold">Narzędzia w pobliżu (do 50 km)</h2>
+          )}
+          {state.mode === "search" && state.query.length > 0 && <h2 className="text-xl font-semibold">Wyniki wyszukiwania</h2>}
+          {state.mode === "nearby" ? (
+            <PublicToolsGrid
+              items={state.items}
+              onLoadMore={actions.loadNext}
+              hasNext={Boolean(state.nextCursor)}
+              isLoadingMore={state.isLoadingMore}
+            />
+          ) : (
+            <ResultsList
+              items={state.items}
+              onLoadMore={actions.loadNext}
+              hasNext={Boolean(state.nextCursor)}
+              isLoadingMore={state.isLoadingMore}
+            />
+          )}
+        </>
       )}
     </div>
   );
