@@ -79,6 +79,7 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
     if (error instanceof SupabaseAuthError) {
       return jsonError(401, "auth_required", "Authentication required.");
     }
+    console.error("Unhandled error in /api/tools/search:", error);
     return jsonError(500, "internal_error", "Unexpected server error.");
   }
 }

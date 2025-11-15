@@ -374,6 +374,7 @@ export class ToolsService {
       p_user_id: userId,
       p_limit: params.limit,
       p_after: after,
+      p_max_distance_m: 50000,
     });
     if (error) {
       throw new SupabaseQueryError("Failed to search nearby tools.", error.code, error);
