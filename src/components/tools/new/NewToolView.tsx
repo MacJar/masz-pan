@@ -8,7 +8,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 export function NewToolView() {
-  const { state, handleFormChange, handleImageAdd, handleImageRemove, handlePublish, canPublish } = useNewToolManager();
+  const {
+    state,
+    handleFormChange,
+    handleImageAdd,
+    handleImageRemove,
+    handlePublish,
+    canPublish,
+    handleSaveDraft,
+    canSaveDraft,
+  } = useNewToolManager();
 
   if (state.status === "creating_draft") {
     return (
@@ -48,6 +57,8 @@ export function NewToolView() {
           canPublish={canPublish}
           isPublishing={state.status === "publishing"}
           onPublish={handlePublish}
+          isSaving={state.status === "saving"}
+          onSaveDraft={handleSaveDraft}
           conditions={{
             hasName: !!state.name.trim(),
             hasPrice: state.suggested_price_tokens >= 1 && state.suggested_price_tokens <= 5,

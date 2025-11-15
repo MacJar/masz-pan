@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/tools.client";
 import { useDebouncedValue } from "./useDebouncedValue";
 import type { UpdateToolCommand } from "@/types";
+import { toast } from "sonner";
 
 type NewToolState = ToolFormViewModel;
 
@@ -125,56 +126,32 @@ function reducer(state: NewToolState, action: Action): NewToolState {
 export function useNewToolManager() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const debouncedName = useDebouncedValue(state.name, 500);
-  const debouncedDescription = useDebouncedValue(state.description, 500);
-  const debouncedPrice = useDebouncedValue(state.suggested_price_tokens, 500);
-
-  useEffect(() => {
-    async function initializeDraft() {
-      dispatch({ type: "CREATE_DRAFT_START" });
-      try {
-        const draftTool = await createDraftTool();
-        dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId: draftTool.id } });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "An unknown error occurred";
-        dispatch({ type: "CREATE_DRAFT_ERROR", payload: { error: message } });
-      }
-    }
-
-    initializeDraft();
-  }, []);
-
-  // Effect for autosaving the form
-  useEffect(() => {
-    if (!state.toolId || state.status === "creating_draft") return;
-
-    const changedData: UpdateToolCommand = {
-      name: debouncedName,
-      description: debouncedDescription,
-      suggested_price_tokens: debouncedPrice,
-    };
-
-    async function saveDraft() {
-      dispatch({ type: "SAVE_DRAFT_START" });
-      try {
-        await updateDraftTool(state.toolId!, changedData);
-        dispatch({ type: "SAVE_DRAFT_SUCCESS" });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "An unknown error occurred";
-        dispatch({ type: "SAVE_DRAFT_ERROR", payload: { error: message } });
-      }
-    }
-
-    saveDraft();
-  }, [debouncedName, debouncedDescription, debouncedPrice, state.toolId]);
-
   const handleFormChange = (field: string, value: any) => {
     dispatch({ type: "FORM_CHANGE", payload: { field, value } });
   };
 
   const handleImageAdd = useCallback(
     async (file: File) => {
-      if (!state.toolId) return;
+      if (!state.toolId) {
+        // If toolId doesn't exist, create draft first
+        try {
+          dispatch({ type: "CREATE_DRAFT_START" });
+          const draftTool = await createDraftTool({ name: state.name, description: state.description, suggested_price_tokens: state.suggested_price_tokens });
+          dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId: draftTool.id } });
+          uploadImage(file, draftTool.id);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "An unknown error occurred";
+          dispatch({ type: "CREATE_DRAFT_ERROR", payload: { error: message } });
+        }
+      } else {
+        uploadImage(file, state.toolId);
+      }
+    },
+    [state.toolId, state.name, state.description, state.suggested_price_tokens],
+  );
+
+  const uploadImage = useCallback(
+    async (file: File, toolId: string) => {
       const tempId = uuidv4();
       dispatch({ type: "IMAGE_ADD_START", payload: { file, tempId } });
 
@@ -189,21 +166,19 @@ export function useNewToolManager() {
 
         // 2. Get Upload URL
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "getting_url" } });
-        const { upload_url, headers, storage_key } = await getUploadUrl(state.toolId, {
+        const { upload_url, headers, storage_key } = await getUploadUrl(toolId, {
           content_type: compressedFile.type,
           size_bytes: compressedFile.size,
         });
 
         // 3. Upload file
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "uploading", progress: 0 } });
-        // NOTE: Real progress tracking would require XHR, fetch doesn't support it directly.
-        // We will simulate it for now.
         await uploadFile(upload_url, compressedFile, headers);
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "uploading", progress: 100 } });
 
         // 4. Save image record
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "saving" } });
-        const savedImage = await saveToolImage(state.toolId, {
+        const savedImage = await saveToolImage(toolId, {
           storage_key,
           position: state.images.length,
         });
@@ -217,7 +192,7 @@ export function useNewToolManager() {
         dispatch({ type: "IMAGE_UPLOAD_ERROR", payload: { tempId, error: message } });
       }
     },
-    [state.toolId, state.images.length],
+    [state.images.length],
   );
 
   const handleImageRemove = useCallback(
@@ -226,7 +201,6 @@ export function useNewToolManager() {
 
       const imageToRemove = state.images.find((img) => img.id === tempId);
       if (!imageToRemove?.databaseId) {
-        // If it was never saved, just remove from state
         dispatch({ type: "IMAGE_REMOVE_SUCCESS", payload: { tempId } });
         return;
       }
@@ -248,6 +222,34 @@ export function useNewToolManager() {
     state.suggested_price_tokens <= 5 &&
     state.images.some((img) => img.status === "completed");
 
+  const canSaveDraft = canPublish;
+
+  const handleSaveDraft = useCallback(async () => {
+    if (!canSaveDraft) return;
+
+    dispatch({ type: "SAVE_DRAFT_START" });
+    try {
+      const draftData = {
+        name: state.name,
+        description: state.description,
+        suggested_price_tokens: state.suggested_price_tokens,
+      };
+
+      if (state.toolId) {
+        await updateDraftTool(state.toolId, draftData);
+      } else {
+        const newDraft = await createDraftTool(draftData);
+        dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId: newDraft.id } });
+      }
+      dispatch({ type: "SAVE_DRAFT_SUCCESS" });
+      toast.success("Szkic został pomyślnie zapisany.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      dispatch({ type: "SAVE_DRAFT_ERROR", payload: { error: message } });
+      toast.error("Wystąpił błąd podczas zapisywania szkicu.");
+    }
+  }, [state.toolId, state.name, state.description, state.suggested_price_tokens, canSaveDraft]);
+
   const handlePublish = useCallback(async () => {
     if (!canPublish || !state.toolId) return;
 
@@ -255,7 +257,6 @@ export function useNewToolManager() {
     try {
       const publishedTool = await publishTool(state.toolId);
       dispatch({ type: "PUBLISH_SUCCESS" });
-      // Redirect on success
       window.location.href = `/tools/${publishedTool.id}`;
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unknown error occurred";
@@ -266,9 +267,11 @@ export function useNewToolManager() {
   return {
     state,
     canPublish,
+    canSaveDraft,
     handleFormChange,
     handleImageAdd,
     handleImageRemove,
+    handleSaveDraft,
     handlePublish,
   };
 }
