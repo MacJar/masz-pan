@@ -5,6 +5,10 @@ import type { SupabaseClient } from "../db/supabase.client.ts";
 
 const GEOCODE_TIMEOUT_MS = 3000;
 
+// Domyślne wartości geolokalizacji (kod pocztowy 00-950, Warszawa)
+const DEFAULT_POSTAL_CODE = "00-950";
+const DEFAULT_LOCATION_HEX = "0101000020E6100000865AD3BCE3F4344075931804561E4A40";
+
 export class GeocodingError extends Error {
   readonly cause?: unknown;
   constructor(message: string, cause?: unknown) {
@@ -12,6 +16,43 @@ export class GeocodingError extends Error {
     this.name = "GeocodingError";
     this.cause = cause;
   }
+}
+
+/**
+ * Zwraca domyślne wartości geolokalizacji.
+ * Używane jako fallback gdy geokodowanie nie działa.
+ * Współrzędne odpowiadają kodowi pocztowemu 00-950 (Warszawa).
+ */
+export function getDefaultLocation(): ProfileGeocodeResultDTO {
+  // Domyślne współrzędne dla kodu pocztowego 00-950 (Warszawa)
+  // Hex string 0101000020E6100000865AD3BCE3F4344075931804561E4A40 odpowiada tym współrzędnym
+  const lon = 21.012229;
+  const lat = 52.229676;
+  
+  return {
+    location_geog: {
+      type: "Point",
+      coordinates: [lon, lat], // [lon, lat] dla kodu pocztowego 00-950
+    },
+  };
+}
+
+/**
+ * Zwraca domyślne współrzędne jako obiekt z lon i lat.
+ * Używane do przekazania do funkcji PostGIS.
+ */
+export function getDefaultCoordinates(): { lon: number; lat: number } {
+  return {
+    lon: 21.012229,
+    lat: 52.229676,
+  };
+}
+
+/**
+ * Zwraca domyślny kod pocztowy.
+ */
+export function getDefaultPostalCode(): string {
+  return DEFAULT_POSTAL_CODE;
 }
 
 const GeocodeResponseSchema = z.object({

@@ -9,6 +9,7 @@ import {
   getAuthenticatedUserId,
   UsernameTakenError,
   upsertOwnProfile,
+  ensureDefaultLocationIfMissing,
 } from "@/lib/services/profile.service";
 import { jsonError, jsonOk, jsonCreated } from "@/lib/api/responses";
 import { z } from "zod";
@@ -43,8 +44,20 @@ export async function GET(context: APIContext): Promise<Response> {
       return jsonError(401, "auth_required", "Authentication required.");
     }
 
-    const profile = await fetchProfileById(supabase, userId);
+    let profile = await fetchProfileById(supabase, userId);
 
+    if (!profile) {
+      await logAuditEvent(supabase, "profile_missing", userId, {
+        endpoint: "/api/profile",
+      });
+      return jsonError(404, "profile_not_found", "Profile not found.");
+    }
+
+    // Automatycznie ustaw domyślne wartości geolokalizacji jeśli użytkownik ich nie ma
+    await ensureDefaultLocationIfMissing(supabase, userId);
+    
+    // Pobierz zaktualizowany profil
+    profile = await fetchProfileById(supabase, userId);
     if (!profile) {
       await logAuditEvent(supabase, "profile_missing", userId, {
         endpoint: "/api/profile",

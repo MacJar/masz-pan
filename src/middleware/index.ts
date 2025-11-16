@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "../db/supabase.client";
 import { defineMiddleware } from "astro:middleware";
 import type { User } from "@supabase/supabase-js";
+import { ensureDefaultLocationIfMissing } from "../lib/services/profile.service";
 
 const PUBLIC_PATHS = [
   "/tools",
@@ -72,7 +73,7 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
   const isAllowedPathForIncompleteProfile = allowedPathsIncompleteProfile.some((p) => url.pathname.startsWith(p));
 
   if (!isAllowedPathForIncompleteProfile) {
-    const { data: profile, error } = await supabase.from("profiles").select("is_complete").eq("id", user.id).single();
+    const { data: profile, error } = await supabase.from("profiles").select("is_complete, location_geog").eq("id", user.id).single();
 
     if (error && error.code !== "PGRST116") {
       // eslint-disable-next-line no-console
@@ -81,6 +82,15 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
       const isProfileComplete = profile?.is_complete ?? false;
       if (!isProfileComplete) {
         return redirect("/profile");
+      }
+      
+      // Automatycznie ustaw domyślne wartości geolokalizacji jeśli użytkownik ich nie ma
+      // Robimy to asynchronicznie, żeby nie blokować requestu
+      if (profile && !profile.location_geog) {
+        ensureDefaultLocationIfMissing(supabase, user.id).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error("Failed to set default location in middleware:", err);
+        });
       }
     }
   }
