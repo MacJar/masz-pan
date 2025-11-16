@@ -30,8 +30,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 };
 
 export const GET: APIRoute = async ({ locals, request }) => {
-  const { session, supabase } = locals;
-  if (!session?.user) {
+  const { user, supabase } = locals;
+  if (!user) {
     return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
   }
 
@@ -61,7 +61,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
 
   try {
     const service = new ReservationsService(supabase);
-    const result = await service.listUserReservations(session.user.id, validation.data);
+    const result = await service.listUserReservations(user.id, validation.data);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

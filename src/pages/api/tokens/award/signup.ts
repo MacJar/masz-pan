@@ -6,9 +6,9 @@ import type { AwardSignupResultDTO } from "@/types";
 export const prerender = false;
 
 export const POST: APIRoute = async ({ locals }) => {
-  const { session, supabase } = locals;
+  const { user, supabase } = locals;
 
-  if (!session?.user || !supabase) {
+  if (!user || !supabase) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ locals }) => {
   }
 
   try {
-    await tokensService.awardSignupBonus(supabase, session.user.id);
+    await tokensService.awardSignupBonus(supabase, user.id);
 
     const responseBody: AwardSignupResultDTO = {
       awarded: true,

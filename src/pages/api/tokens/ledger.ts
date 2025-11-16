@@ -1,19 +1,18 @@
 import type { APIRoute } from "astro";
 import { GetLedgerEntriesQuerySchema } from "@/lib/schemas/token.schema";
 import { tokensService } from "@/lib/services/tokens.service";
-import { jsonError } from "../../../lib/api/responses.ts";
+import { jsonError } from "@/lib/api/responses";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, locals }) => {
-  const session = locals.session;
-  const supabase = locals.supabase;
+  const { user, supabase } = locals;
 
   if (!supabase) {
     return jsonError(500, "internal_error", "Unexpected server configuration error.");
   }
 
-  if (!session?.user) {
+  if (!user) {
     return jsonError(401, "auth_required", "Authentication required.");
   }
 
@@ -26,7 +25,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 
   try {
-    const result = await tokensService.getLedgerEntries(supabase, session.user.id, validationResult.data);
+    const result = await tokensService.getLedgerEntries(supabase, user.id, validationResult.data);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

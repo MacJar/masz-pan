@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { jsonError, jsonOk } from "../../../lib/api/responses.ts";
+import { jsonError, jsonOk } from "@/lib/api/responses";
 import { AwardListingBonusPayloadSchema } from "@/lib/schemas/token.schema";
 import { tokensService } from "@/lib/services/tokens.service";
 import { AppError } from "@/lib/services/errors.service";
@@ -7,13 +7,13 @@ import { AppError } from "@/lib/services/errors.service";
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { session, supabase } = locals;
+  const { user, supabase } = locals;
 
   if (!supabase) {
     return jsonError(500, "internal_error", "Unexpected server configuration error.");
   }
 
-  if (!session?.user) {
+  if (!user) {
     return jsonError(401, "auth_required", "Authentication required.");
   }
 
@@ -26,7 +26,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   try {
-    await tokensService.awardListingBonus(supabase, session.user.id, payload.toolId);
+    await tokensService.awardListingBonus(supabase, user.id, payload.toolId);
     return jsonOk({ awarded: true, amount: 50, count_used: 1 });
   } catch (e) {
     if (e instanceof AppError) {

@@ -1,0 +1,12 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ReservationsView from "@/components/reservations/ReservationsView";
+---
+
+<Layout title="Moje Rezerwacje">
+  <main class="container mx-auto py-8">
+    <h1 class="text-3xl font-bold mb-6">Moje rezerwacje</h1>
+    <ReservationsView client:load />
+  </main>
+</Layout>
+
