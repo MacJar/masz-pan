@@ -44,7 +44,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>{toolName}</CardTitle>
+              <CardTitle className="text-lg">{toolName}</CardTitle>
               <br />
               <CardDescription>
                 {userRole === "owner"

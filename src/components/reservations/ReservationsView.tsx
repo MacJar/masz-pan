@@ -19,11 +19,11 @@ const ReservationsView = () => {
   return (
     <>
       <Tabs defaultValue="borrower" className="w-full" onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-2 h-[72px]">
-          <TabsTrigger value="borrower" className="text-lg h-[72px]">
+        <TabsList className="grid w-full grid-cols-2 h-16">
+          <TabsTrigger value="borrower" className="text-lg h-14">
             Pożyczam
           </TabsTrigger>
-          <TabsTrigger value="owner" className="text-lg h-[72px]">
+          <TabsTrigger value="owner" className="text-lg h-14">
             Użyczam
           </TabsTrigger>
         </TabsList>
