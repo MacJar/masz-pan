@@ -200,6 +200,7 @@ export class ReservationsService {
     const { data, error } = await queryBuilder;
 
     if (error) {
+      console.error("getReservationContacts RPC error:", error);
       console.error("Error fetching reservations:", error);
       throw new Error("Could not fetch reservations.");
     }
@@ -356,9 +357,10 @@ export class ReservationsService {
     return updatedReservation;
   }
 
-  async getReservationContacts(reservationId: string): Promise<ReservationContactsDto> {
+  async getReservationContacts(reservationId: string, requesterId: string): Promise<ReservationContactsDto> {
     const { data, error } = await this.supabase.rpc("get_counterparty_contact", {
       p_reservation_id: reservationId,
+      p_requester_id: requesterId,
     });
 
     if (error) {
@@ -382,12 +384,18 @@ export class ReservationsService {
       throw new InternalServerError("Failed to retrieve contacts: RPC returned no data.");
     }
 
-    // The RPC function returns a table with one row, so we access the first element
-    const contacts = data[0];
+    const contacts = data[0] as {
+      counterparty_role?: string | null;
+      counterparty_email?: string | null;
+    };
+
+    if (!contacts.counterparty_role || !contacts.counterparty_email) {
+      throw new InternalServerError("Failed to retrieve contacts: incomplete RPC response.");
+    }
 
     return {
-      owner_email: contacts.owner_email,
-      borrower_email: contacts.borrower_email,
+      counterparty_role: contacts.counterparty_role === "owner" ? "owner" : "borrower",
+      counterparty_email: contacts.counterparty_email,
     };
   }
 

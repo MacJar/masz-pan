@@ -47,7 +47,7 @@ export const cancelReservationRequest = async (id: string, cancelled_reason: str
 
 export const getContactsForReservation = async (id: string): Promise<ReservationContactsDto> => {
   try {
-    const response = await fetch(`/api/reservations/${id}/contact`);
+    const response = await fetch(`/api/reservations/${id}/contacts`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error?.message || "Failed to get contacts for reservation");

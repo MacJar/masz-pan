@@ -217,9 +217,11 @@ export interface ReservationDetailsDto {
   updatedAt: string;
 }
 
+export type ReservationCounterpartyRole = "owner" | "borrower";
+
 export interface ReservationContactsDto {
-  owner_email: string;
-  borrower_email: string;
+  counterparty_role: ReservationCounterpartyRole;
+  counterparty_email: string;
 }
 
 export interface Reservation {

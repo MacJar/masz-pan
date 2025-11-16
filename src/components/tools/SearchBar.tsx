@@ -34,9 +34,15 @@ export default function SearchBar(props: SearchBarProps): JSX.Element {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Wpisz nazwę narzędzia…"
-        className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+        className="flex-1 rounded-md border px-3 py-2 text-2xl outline-none focus:ring-2 focus:ring-primary"
       />
-      <Button variant="default" disabled={invalid || isPending} onClick={onSubmit}>
+      <Button
+        variant="default"
+        disabled={invalid || isPending}
+        onClick={onSubmit}
+        className="text-2xl h-[48px] px-6"
+        style={{ minHeight: "48px" }}
+      >
         {isPending ? "Szukam…" : "Szukaj"}
       </Button>
       {tooLong && (
@@ -47,6 +53,3 @@ export default function SearchBar(props: SearchBarProps): JSX.Element {
     </div>
   );
 }
-
-
-

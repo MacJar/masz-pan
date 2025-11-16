@@ -9,11 +9,7 @@ import ContactDetails from "./ContactDetails";
 interface ReservationCardProps {
   reservation: ReservationViewModel;
   userRole: "owner" | "borrower";
-  onTransition: (
-    id: string,
-    status: ReservationStatus,
-    payload?: any
-  ) => void;
+  onTransition: (id: string, status: ReservationStatus, payload?: any) => void;
   onCancel: (id: string, reason: string) => void;
   onReject: (id: string, reason: string) => void;
 }
@@ -28,7 +24,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
   const { tool, counterparty, status } = reservation;
   const toolName = tool?.name || "Nazwa narzędzia niedostępna";
   const toolImageUrl = tool?.main_image_url || null;
-  const showContactDetails = ['borrower_confirmed', 'picked_up', 'returned'].includes(status);
+  const showContactDetails = ["borrower_confirmed", "picked_up", "returned"].includes(status);
 
   return (
     <Card>
@@ -36,9 +32,13 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <CardTitle>{toolName}</CardTitle>
+            <br />
             <CardDescription>
-              {userRole === "owner" ? `Rezerwacja od: ${counterparty.username}` : `Właściciel: ${counterparty.username}`}
+              {userRole === "owner"
+                ? `Rezerwacja od: ${counterparty.username}`
+                : `Właściciel: ${counterparty.username}`}
             </CardDescription>
+            <br />
           </div>
           <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-200 flex items-center justify-center">
             {toolImageUrl ? (
@@ -59,11 +59,11 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
       </CardContent>
       <CardFooter className="flex justify-between items-center">
         {showContactDetails ? (
-            <ContactDetails reservationId={reservation.id} />
+          <ContactDetails reservationId={reservation.id} />
         ) : (
-            <div className="text-sm text-gray-500">
-                Utworzono: {new Date(reservation.created_at).toLocaleDateString()}
-            </div>
+          <div className="text-sm text-gray-500">
+            Utworzono: {new Date(reservation.created_at).toLocaleDateString()}
+          </div>
         )}
         <ActionButtons
           reservation={reservation}

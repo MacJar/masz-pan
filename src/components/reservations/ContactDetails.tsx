@@ -28,25 +28,27 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ reservationId }) => {
   };
 
   if (contacts) {
+    const label = contacts.counterparty_role === "owner" ? "właściciel" : "pożyczający";
+    const emailLink = `mailto:${contacts.counterparty_email}`;
+
     return (
       <Alert>
         <Mail className="h-4 w-4" />
         <AlertTitle>Dane kontaktowe</AlertTitle>
-        <AlertDescription>
-            <p>Właściciel: {contacts.owner_email}</p>
-            <p>Pożyczający: {contacts.borrower_email}</p>
+        <AlertDescription className="space-y-1">
+          <p className="text-sm text-muted-foreground">
+            Kontakt do {label}:{" "}
+            <a href={emailLink} className="font-medium text-primary underline-offset-2 hover:underline">
+              {contacts.counterparty_email}
+            </a>
+          </p>
         </AlertDescription>
       </Alert>
     );
   }
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleFetchContacts}
-      disabled={isLoading}
-    >
+    <Button variant="outline" size="sm" onClick={handleFetchContacts} disabled={isLoading}>
       {isLoading ? "Ładowanie..." : "Pokaż kontakt"}
     </Button>
   );

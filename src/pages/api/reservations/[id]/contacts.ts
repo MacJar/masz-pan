@@ -9,9 +9,9 @@ const UuidSchema = z.string().uuid();
 
 export const GET: APIRoute = async (context) => {
   const { locals, params } = context;
-  const { supabase, currentUser } = locals;
+  const { supabase, user } = locals;
 
-  if (!currentUser) {
+  if (!user) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
   }
 
@@ -24,7 +24,7 @@ export const GET: APIRoute = async (context) => {
   const reservationsService = new ReservationsService(supabase);
 
   try {
-    const contacts = await reservationsService.getReservationContacts(reservationId);
+    const contacts = await reservationsService.getReservationContacts(reservationId, user.id);
     return new Response(JSON.stringify(contacts), {
       status: 200,
       headers: { "Content-Type": "application/json" },
