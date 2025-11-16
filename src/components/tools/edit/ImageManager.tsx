@@ -1,5 +1,5 @@
 import React from "react";
-import type { ToolImageDTO } from "@/types";
+import type { ToolImageWithUrlDTO } from "@/types";
 import { ImageUploader } from "@/components/tools/new/ImageUploader";
 import { getToolImagePublicUrl } from "@/lib/utils";
 import { X, GripVertical } from "lucide-react";
@@ -8,21 +8,21 @@ import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@d
 import { CSS } from "@dnd-kit/utilities";
 
 interface ImageManagerProps {
-  images: ToolImageDTO[];
+  images: ToolImageWithUrlDTO[];
   toolId: string;
   onImageAdd: (file: File) => void;
   onImageDelete: (imageId: string) => void;
-  onImageReorder: (reorderedImages: ToolImageDTO[]) => void;
+  onImageReorder: (reorderedImages: ToolImageWithUrlDTO[]) => void;
 }
 
-function SortableImageItem({ image, onRemove }: { image: ToolImageDTO; onRemove: (id: string) => void }) {
+function SortableImageItem({ image, onRemove }: { image: ToolImageWithUrlDTO; onRemove: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: image.id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const imageUrl = getToolImagePublicUrl(image.storage_key);
+  const imageUrl = image.public_url ?? getToolImagePublicUrl(image.storage_key);
 
   return (
     <div ref={setNodeRef} style={style} className="relative border rounded-lg overflow-hidden aspect-square touch-none">
@@ -48,7 +48,7 @@ function SortableImageItem({ image, onRemove }: { image: ToolImageDTO; onRemove:
 }
 
 export function ImageManager({ images, toolId, onImageAdd, onImageDelete, onImageReorder }: ImageManagerProps) {
-  const sortedImages = images.sort((a, b) => a.position - b.position);
+  const sortedImages = [...images].sort((a, b) => a.position - b.position);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

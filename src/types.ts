@@ -142,6 +142,7 @@ export interface ToolImageUploadUrlDto {
 }
 
 export type ToolImageDTO = Row<"tool_images">;
+export type ToolImageWithUrlDTO = ToolImageDTO & { public_url?: string };
 
 export const CreateToolImageCommandSchema = z.object({
   storage_key: z.string(),
@@ -160,7 +161,7 @@ export interface ImageUploadURLDTO {
   storage_key: string;
 }
 
-export type ToolWithImagesDTO = ToolDTO & { images: ToolImageDTO[] };
+export type ToolWithImagesDTO = ToolDTO & { images: ToolImageWithUrlDTO[] };
 
 // =====================
 // Reservations

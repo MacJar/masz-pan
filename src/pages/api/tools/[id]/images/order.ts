@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { APIRoute } from "astro";
-import {_Error, _Response} from "@/lib/api/responses";
+import { _Error, _Response } from "@/lib/api/responses";
 import { getSupabase } from "@/db/supabase";
+import { getToolImagePublicUrl } from "@/lib/utils";
 
 export const prerender = false;
 
@@ -71,5 +72,10 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     return _Error(500, "Failed to fetch updated images");
   }
 
-  return _Response(updatedImages, 200);
+  const imagesWithUrl = (updatedImages ?? []).map((image) => ({
+    ...image,
+    public_url: getToolImagePublicUrl(image.storage_key),
+  }));
+
+  return _Response(imagesWithUrl, 200);
 };

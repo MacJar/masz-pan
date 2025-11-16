@@ -4,6 +4,7 @@ import type {
   CreateToolImageUploadUrlCommand,
   ToolDTO,
   ToolImageDTO,
+  ToolImageWithUrlDTO,
   ToolImageUploadUrlDto,
   ToolSearchPageDTO,
   ToolStatus,
@@ -21,6 +22,7 @@ import {
   UnprocessableEntityError,
 } from "./errors.service.ts";
 import mime from "mime";
+import { getToolImagePublicUrl } from "../utils.ts";
 
 export interface GetToolsByOwnerParams {
   ownerId: string;
@@ -69,6 +71,13 @@ export class ToolsService {
 
   constructor(supabase: SupabaseClient) {
     this.supabase = supabase;
+  }
+
+  private mapImageWithUrl(image: ToolImageDTO): ToolImageWithUrlDTO {
+    return {
+      ...image,
+      public_url: getToolImagePublicUrl(image.storage_key),
+    };
   }
 
   async getToolsByOwner(params: GetToolsByOwnerParams) {
@@ -166,7 +175,7 @@ export class ToolsService {
     };
   }
 
-  async getToolImagesForTool(toolId: string, currentUserId?: string) {
+  async getToolImagesForTool(toolId: string, currentUserId?: string): Promise<ToolImageWithUrlDTO[]> {
     const { data: tool, error: toolError } = await this.supabase
       .from("tools")
       .select("status, owner_id")
@@ -194,7 +203,7 @@ export class ToolsService {
       throw new SupabaseQueryError("Failed to fetch tool images.", imagesError.code, imagesError);
     }
 
-    return images;
+    return images.map((image) => this.mapImageWithUrl(image));
   }
 
   async findToolWithImagesById(toolId: string): Promise<ToolWithImagesDTO | null> {
@@ -214,7 +223,18 @@ export class ToolsService {
       throw new SupabaseQueryError("Failed to fetch tool by ID.", error.code, error);
     }
 
-    return data as ToolWithImagesDTO | null;
+    if (!data) {
+      return null;
+    }
+
+    const images = Array.isArray(data.images)
+      ? (data.images as ToolImageDTO[]).map((image) => this.mapImageWithUrl(image))
+      : [];
+
+    return {
+      ...(data as ToolDTO),
+      images,
+    } as ToolWithImagesDTO;
   }
 
   async updateTool(toolId: string, ownerId: string, command: UpdateToolCommand) {
@@ -249,7 +269,7 @@ export class ToolsService {
     return updatedTool;
   }
 
-  async createToolImage(toolId: string, ownerId: string, data: CreateToolImageCommand): Promise<ToolImageDTO> {
+  async createToolImage(toolId: string, ownerId: string, data: CreateToolImageCommand): Promise<ToolImageWithUrlDTO> {
     const { data: tool, error: toolError } = await this.supabase
       .from("tools")
       .select("owner_id")
@@ -284,7 +304,7 @@ export class ToolsService {
       throw new SupabaseQueryError("Failed to create tool image.", insertError.code, insertError);
     }
 
-    return newImage;
+    return this.mapImageWithUrl(newImage as ToolImageDTO);
   }
 
   async deleteToolImage(command: DeleteToolImageCommand): Promise<void> {
@@ -541,6 +561,10 @@ export class ToolsService {
 
     const tool = data[0];
 
+    const images = Array.isArray(tool.images)
+      ? (tool.images as ToolImageDTO[]).map((image) => this.mapImageWithUrl(image))
+      : [];
+
     return {
       id: tool.id,
       owner_id: tool.owner_id,
@@ -551,7 +575,7 @@ export class ToolsService {
       created_at: tool.created_at,
       updated_at: tool.updated_at,
       archived_at: tool.archived_at,
-      images: tool.images ? (tool.images as ToolImageDTO[]) : [],
+      images,
     };
   }
 

@@ -4,14 +4,14 @@ import type {
   CreateToolImageUploadUrlCommand,
   ToolImageUploadUrlDto,
   CreateToolImageCommand,
-  ToolImageDTO,
+  ToolImageWithUrlDTO,
   UpdateToolCommand,
   CursorPage,
   ToolStatus,
   ToolWithImagesDTO,
 } from "@/types";
 
-export async function reorderToolImages(toolId: string, imageIds: string[]): Promise<ToolImageDTO[]> {
+export async function reorderToolImages(toolId: string, imageIds: string[]): Promise<ToolImageWithUrlDTO[]> {
   const response = await fetch(`/api/tools/${toolId}/images/order`, {
     method: "PATCH",
     headers: {
@@ -155,7 +155,7 @@ export async function uploadFile(uploadUrl: string, file: File, headers: Record<
   }
 }
 
-export async function saveToolImage(toolId: string, command: CreateToolImageCommand): Promise<ToolImageDTO> {
+export async function saveToolImage(toolId: string, command: CreateToolImageCommand): Promise<ToolImageWithUrlDTO> {
   const response = await fetch(`/api/tools/${toolId}/images`, {
     method: "POST",
     headers: {

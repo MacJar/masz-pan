@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { title = "10x Astro Starter" } = Astro.props;
-const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? import.meta.env.SUPABASE_URL ?? "";
 ---
 
 <!doctype html>
