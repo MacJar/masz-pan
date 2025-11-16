@@ -175,7 +175,8 @@ export class ReservationsService {
         *,
         tool:tools(id, name),
         borrower:profiles!reservations_borrower_id_fkey(id, username),
-        owner:profiles!reservations_owner_id_fkey(id, username)
+        owner:profiles!reservations_owner_id_fkey(id, username),
+        ratings(stars, rater_id)
       `
       )
       .eq(role === "owner" ? "owner_id" : "borrower_id", userId)
@@ -200,14 +201,21 @@ export class ReservationsService {
     const { data, error } = await queryBuilder;
 
     if (error) {
-      console.error("getReservationContacts RPC error:", error);
       console.error("Error fetching reservations:", error);
       throw new Error("Could not fetch reservations.");
     }
 
     const hasNextPage = data.length > limit;
     const rawItems = hasNextPage ? data.slice(0, limit) : data;
-    const items = await this.attachToolMainImages(rawItems as ReservationWithToolDTO[]);
+    const itemsWithRatings = rawItems.map((item) => {
+      const currentUserRating =
+        item.ratings?.find((r) => r.rater_id === userId)?.stars ?? null;
+      const counterpartyRating =
+        item.ratings?.find((r) => r.rater_id !== userId)?.stars ?? null;
+      return { ...item, currentUserRating, counterpartyRating };
+    });
+
+    const items = await this.attachToolMainImages(itemsWithRatings as ReservationWithToolDTO[]);
 
     let next_cursor: string | null = null;
     if (hasNextPage) {

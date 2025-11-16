@@ -175,9 +175,23 @@ export type ReservationListItemDTO = Pick<ReservationDTO, "id" | "status">;
 export type ReservationListPageDTO = CursorPage<ReservationListItemDTO>;
 
 export type ReservationWithToolDTO = ReservationDTO & {
-  tool: Pick<ToolDTO, "id" | "name" | "main_image_url"> | null;
-  borrower: Pick<ProfileDTO, "id" | "username"> | null;
-  owner: Pick<ProfileDTO, "id" | "username"> | null;
+  tool: {
+    id: string;
+    name: string;
+    main_image_url?: string | null;
+  } | null;
+  borrower: {
+    id: string;
+    username: string | null;
+  } | null;
+  owner: {
+    id: string;
+    username: string | null;
+  } | null;
+  ratings?: {
+    stars: number;
+    rater_id: string;
+  }[];
 };
 
 export interface ReservationTransitionResponseDto {

@@ -58,3 +58,18 @@ export const getContactsForReservation = async (id: string): Promise<Reservation
     throw error;
   }
 };
+
+export const rateReservationRequest = async (id: string, rating: number) => {
+  const response = await fetch(`/api/reservations/${id}/rate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ rating }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Nie udało się zapisać oceny");
+  }
+};

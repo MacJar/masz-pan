@@ -22,5 +22,11 @@ export interface ReservationViewModel extends ReservationWithToolDTO {
 
   // Lista akcji, które bieżący użytkownik może wykonać w danym stanie
   availableActions: ReservationAction[];
+
+  // Ocena wystawiona przez bieżącego użytkownika
+  currentUserRating: number | null;
+
+  // Ocena wystawiona przez drugą stronę
+  counterpartyRating: number | null;
 }
 

@@ -5,7 +5,8 @@ import ReservationList from "./ReservationList";
 import { Toaster } from "@/components/ui/sonner";
 
 const ReservationsView = () => {
-  const { state, setActiveTab, transitionState, cancelReservation, rejectReservation } = useReservationsManager();
+  const { state, setActiveTab, transitionState, cancelReservation, rejectReservation, rateReservation } =
+    useReservationsManager();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as "borrower" | "owner");
@@ -34,6 +35,7 @@ const ReservationsView = () => {
             onTransition={transitionState}
             onCancel={cancelReservation}
             onReject={rejectReservation}
+            onRate={rateReservation}
           />
         </TabsContent>
         <TabsContent value="owner">
@@ -44,6 +46,7 @@ const ReservationsView = () => {
             onTransition={transitionState}
             onCancel={cancelReservation}
             onReject={rejectReservation}
+            onRate={rateReservation}
           />
         </TabsContent>
       </Tabs>

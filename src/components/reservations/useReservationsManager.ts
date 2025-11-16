@@ -3,6 +3,7 @@ import type { ReservationViewModel, ReservationAction } from "./reservations.typ
 import {
   cancelReservationRequest,
   getMyReservations,
+  rateReservationRequest,
   transitionReservation,
 } from "@/lib/api/reservations.client";
 import { getProfile } from "@/lib/api/profile.client";
@@ -59,6 +60,8 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
     currentUserRole,
     counterparty: counterparty ?? { id: "unknown", username: "Nieznany" },
     availableActions,
+    currentUserRating: (dto as any).currentUserRating ?? null,
+    counterpartyRating: (dto as any).counterpartyRating ?? null,
   };
 };
 
@@ -175,7 +178,27 @@ export const useReservationsManager = () => {
     // In a real API, this might be a separate endpoint, but here we model it as a transition
     // The reason might be passed in the payload if the API supports it.
     await transitionState(id, "rejected", { cancelled_reason: reason });
-  }
+  };
+
+  const rateReservation = async (id: string, rating: number) => {
+    const role = activeTab;
+    const originalReservations = [...reservations[role]];
+    const reservationToUpdate = originalReservations.find(r => r.id === id);
+    if (!reservationToUpdate || !currentUser) return;
+
+    // Optimistic update
+    updateReservationState(id, role, { currentUserRating: rating });
+
+    try {
+      toast.info(`Wysyłanie oceny...`);
+      await rateReservationRequest(id, rating);
+      toast.success("Dziękujemy za wystawienie oceny!");
+    } catch (error) {
+      // Revert state
+      setReservations(prev => ({ ...prev, [role]: originalReservations }));
+      toast.error((error as Error).message || "Wystąpił błąd podczas wysyłania oceny.");
+    }
+  };
 
   return {
     state: {
@@ -188,6 +211,7 @@ export const useReservationsManager = () => {
     transitionState,
     cancelReservation,
     rejectReservation,
+    rateReservation,
   };
 };
 

@@ -12,6 +12,7 @@ interface ReservationListProps {
   onTransition: (id: string, status: ReservationStatus, payload?: any) => void;
   onCancel: (id: string, reason: string) => void;
   onReject: (id: string, reason: string) => void;
+  onRate: (id: string, rating: number) => void;
 }
 
 const ReservationList: React.FC<ReservationListProps> = ({
@@ -21,6 +22,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
   onTransition,
   onCancel,
   onReject,
+  onRate,
 }) => {
   if (isLoading) {
     return <SkeletonList />;
@@ -40,6 +42,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
           onTransition={onTransition}
           onCancel={onCancel}
           onReject={onReject}
+          onRate={onRate}
         />
       ))}
     </div>
