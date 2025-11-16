@@ -6,10 +6,13 @@ const PUBLIC_PATHS = [
   '/tools',
   '/auth/login',
   '/auth/register',
-  '/auth/reset-password',
+  '/auth/forgot-password',
+  '/auth/update-password',
   '/api/auth/login',
   '/api/auth/register',
-  '/api/auth/reset-password',
+  '/api/auth/forgot-password',
+  '/api/auth/update-password',
+  '/api/auth/callback',
   '/api/auth/logout',
   '/api/profile/geocode', // Public for address search in profile form
 ];

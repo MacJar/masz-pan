@@ -42,7 +42,7 @@ export interface ApiErrorDTO {
 // Profiles
 // =====================
 
-export type ProfileDTO = Row<"profiles">;
+export type ProfileDTO = Row<"profiles"> & { last_geocoded_at?: string | null };
 
 export type ProfileUpsertCommand = Pick<Insert<"profiles">, "username" | "location_text" | "rodo_consent">;
 

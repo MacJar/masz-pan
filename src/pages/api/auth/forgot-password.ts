@@ -1,47 +1,45 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../db/supabase.client';
+import { forgotPasswordSchema } from '../../../lib/schemas/auth.schema';
 import { ZodError } from 'zod';
-import { registerSchema } from '../../../lib/schemas/auth.schema';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies, url }) => {
   try {
     const body = await request.json();
-    const { email, password } = registerSchema.parse(body);
+    const { email } = forgotPasswordSchema.parse(body);
 
     const supabase = createSupabaseServerClient({ cookies, headers: request.headers });
-
+    
     const correctedOrigin = url.origin.replace('127.0.0.1', 'localhost');
-
+    
     // The redirect URL should point to the callback route.
     // The callback will exchange the code for a session and redirect to the 'next' URL.
-    const emailRedirectTo = new URL('/api/auth/callback?next=/profile', correctedOrigin).toString();
+    const redirectTo = new URL('/api/auth/callback?next=/auth/update-password', correctedOrigin).toString();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo,
-      },
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
     });
 
+    // For security reasons, do not reveal whether an email is registered.
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 400,
-      });
+      console.error('Error sending password reset email:', error.message);
     }
 
-    return new Response(JSON.stringify({ user: data.user }), {
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        message: 'Jeśli konto o podanym adresie e-mail istnieje, wysłano na nie instrukcję resetowania hasła.',
+      }),
+      { status: 200 },
+    );
   } catch (error) {
     if (error instanceof ZodError) {
-      return new Response(JSON.stringify({ error: error.errors.map((e) => e.message).join(', ') }), {
+      return new Response(JSON.stringify({ error: 'Nieprawidłowy adres e-mail.' }), {
         status: 400,
       });
     }
-    console.error('Register endpoint error:', error);
+    console.error('Forgot password endpoint error:', error);
     return new Response(JSON.stringify({ error: 'Wystąpił wewnętrzny błąd serwera.' }), {
       status: 500,
     });

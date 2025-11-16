@@ -70,13 +70,13 @@ export function LoginForm() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter>
-        <p className="text-sm">
-          Nie masz konta?{' '}
-          <a href="/auth/register" className="underline">
-            Zarejestruj się
-          </a>
-        </p>
+      <CardFooter className="flex justify-between text-sm">
+        <a href="/auth/register" className="underline">
+          Zarejestruj się
+        </a>
+        <a href="/auth/forgot-password" className="underline">
+          Zapomniałeś hasła?
+        </a>
       </CardFooter>
     </Card>
   );
