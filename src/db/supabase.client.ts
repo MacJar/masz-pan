@@ -45,6 +45,15 @@ export const createSupabaseServerClient = (context: {
   return supabase;
 };
 
+/**
+ * Creates a Supabase client with service role key (bypasses RLS).
+ * 
+ * ⚠️ WARNING: This should ONLY be used in:
+ * - E2E tests for cleanup/setup operations
+ * - Server-side administrative tasks that require bypassing RLS
+ * 
+ * For normal application operations, use createSupabaseServerClient instead.
+ */
 export const createServiceClient = () => {
   return createClient<Database>(
     import.meta.env.SUPABASE_URL,

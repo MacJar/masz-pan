@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import { createServiceClient } from "../../db/supabase.client.ts";
 import type { ProfileDTO, ProfileUpsertCommand, PublicProfileDTO, RatingSummaryDTO, ToolSummaryDTO } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
 import { geocodeLocation } from "./geocoding.service.ts";
@@ -229,6 +228,9 @@ export function hasLocationChanged(prev: string | null, next: string | null): bo
 /**
  * Attempts to persist an audit event. Failures are swallowed to keep the caller's
  * control flow unaffected (e.g. when RLS denies access).
+ * 
+ * Uses RLS policy "audit_log_insert_auth" which allows authenticated users
+ * to insert events where actor_id matches their user ID or is null.
  */
 export async function logAuditEvent(
   supabase: SupabaseClient,
@@ -247,19 +249,7 @@ export async function logAuditEvent(
     payload.details = details;
   }
 
-  // TODO: Remove this when we have a proper auth system
-  // Prefer service-role client (bypasses RLS safely on server)
-  const serviceClient = createServiceClient();
-  if (serviceClient) {
-    const { error } = await serviceClient.from("audit_log").insert(payload);
-    if (error && import.meta.env.DEV) {
-      // eslint-disable-next-line no-console -- server-side diagnostic only in development
-      console.warn("Failed to write audit event (service)", { eventType, error });
-    }
-    return;
-  }
-
-  // In bypass mode without service key: skip audit writes to avoid noisy RLS errors
+  // In bypass mode: skip audit writes to avoid noisy RLS errors
   if (import.meta.env.AUTH_BYPASS === "true") {
     return;
   }

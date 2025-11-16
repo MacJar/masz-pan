@@ -42,7 +42,7 @@ test.afterEach(async ({ page }, testInfo) => {
   }
 
   // Logika czyszcząca - usuwanie narzędzia dodanego w teście
-  const supabaseAdmin = createClient(process.env.PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const supabaseAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
   const { data: tool, error } = await supabaseAdmin.from("tools").select("id").eq("name", toolName).single();
 

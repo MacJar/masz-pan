@@ -21,7 +21,6 @@ interface ImportMetaEnv {
   readonly OPENAI_API_KEY: string;
   readonly AUTH_BYPASS?: string; // "true" or "false"
   readonly AUTH_BYPASS_USER_ID?: string; // mock user id when bypassing
-  readonly PUBLIC_SUPABASE_URL?: string;
 }
 
 interface ImportMeta {

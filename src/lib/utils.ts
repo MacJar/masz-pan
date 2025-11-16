@@ -10,10 +10,6 @@ function resolveSupabaseUrl(): string | undefined {
     return window.__SUPABASE_URL;
   }
 
-  if (import.meta.env.PUBLIC_SUPABASE_URL) {
-    return import.meta.env.PUBLIC_SUPABASE_URL;
-  }
-
   return import.meta.env.SUPABASE_URL;
 }
 
