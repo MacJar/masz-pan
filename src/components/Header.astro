@@ -20,8 +20,11 @@ if (isAuthenticated) {
 
 <header class="bg-background border-b">
   <div class="container mx-auto">
-    <nav class="flex h-16 items-center justify-between">
-      <a href="/" class="text-xl font-bold">Masz Pan</a>
+    <nav class="flex h-35 items-center justify-between">
+      <a href="/" class="flex items-center" aria-label="Masz Pan">
+        <img src="/masz-pan-logo.png" alt="Masz Pan" class="h-30 w-auto" loading="lazy" decoding="async" />
+        <span class="sr-only">Masz Pan</span>
+      </a>
       <ul class="flex gap-4 items-center">
         <li>
           <a href="/" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"

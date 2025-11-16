@@ -1,25 +1,67 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import {
-  getBalance,
-  getLedger,
-  getEligibleTools,
-  claimSignupBonus,
-  claimListingBonus,
-  claimRescueBonus,
-} from '@/lib/api/tokens.client';
+import { getBalance, getLedger, getBonusState, claimSignupBonus, claimListingBonus, claimRescueBonus } from '@/lib/api/tokens.client';
 import type {
   TokenBalanceDto,
+  TokenLedgerEntryDto,
   TokenLedgerEntryViewModel,
   TokenLedgerKind,
   BonusStateViewModel,
 } from '@/types';
 
-const transformLedgerEntry = (entry: any): TokenLedgerEntryViewModel => ({
-  ...entry,
-  formattedDate: new Date(entry.created_at).toLocaleString(),
-  description: `Transakcja typu ${entry.kind} na kwotę ${entry.amount}`, // Placeholder
+const formatLedgerDescription = (entry: TokenLedgerEntryDto): string => {
+  const details = entry.details ?? {};
+
+  if (entry.kind === 'award') {
+    const awardType = details.award;
+    switch (awardType) {
+      case 'signup_bonus':
+        return 'Bonus powitalny';
+      case 'listing_bonus':
+        return 'Bonus za wystawienie narzędzia';
+      case 'rescue_claim':
+        return 'Bonus ratunkowy';
+      default:
+        return 'Bonus żetonów';
+    }
+  }
+
+  if (details.reason) {
+    return details.reason as string;
+  }
+
+  if (details.description) {
+    return details.description as string;
+  }
+
+  return `Transakcja typu ${entry.kind}`;
+};
+
+const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
 });
+
+const transformLedgerEntry = (entry: TokenLedgerEntryDto): TokenLedgerEntryViewModel => {
+  let formattedDate = '—';
+  if (entry.created_at) {
+    const parsed = new Date(entry.created_at);
+    formattedDate = Number.isNaN(parsed.valueOf()) ? '—' : dateFormatter.format(parsed);
+  }
+
+  return {
+    ...entry,
+    formattedDate,
+    description: formatLedgerDescription(entry),
+  };
+};
+
+type ActionFeedback =
+  | {
+      type: 'success' | 'error';
+      message: string;
+    }
+  | null;
 
 export const useTokensView = () => {
   const [balance, setBalance] = useState<TokenBalanceDto | null>(null);
@@ -28,11 +70,7 @@ export const useTokensView = () => {
   const [ledgerFilter, setLedgerFilter] = useState<TokenLedgerKind | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
-  const [bonusState, setBonusState] = useState<BonusStateViewModel>({
-    signup: { isClaimed: true, isLoading: false }, // Assume claimed initially
-    listing: { eligibleTools: [], claimsUsed: 3, isLoading: false }, // Assume used
-    rescue: { isAvailable: false, isClaimedToday: true, isLoading: false }, // Assume unavailable
-  });
+  const [bonusState, setBonusState] = useState<BonusStateViewModel | null>(null);
 
   const [isLoading, setIsLoading] = useState({
     balance: true,
@@ -40,6 +78,7 @@ export const useTokensView = () => {
     bonusState: true,
   });
   const [error, setError] = useState<string | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<ActionFeedback>(null);
 
   const handleError = (err: unknown, defaultMessage: string) => {
     const message = err instanceof Error ? err.message : defaultMessage;
@@ -82,41 +121,24 @@ export const useTokensView = () => {
   );
   
   const fetchBonusState = useCallback(async () => {
-    // This function will be properly implemented once backend endpoints are ready.
-    // For now, it simulates fetching state based on mocked data or initial assumptions.
     setIsLoading((prev) => ({ ...prev, bonusState: true }));
     setError(null);
     try {
-      const tools = await getEligibleTools();
-      // Mocked logic for bonus availability
-      setBonusState({
-        signup: { isClaimed: false, isLoading: false }, // Let's pretend it's available
-        listing: { eligibleTools: tools, claimsUsed: 0, isLoading: false },
-        rescue: {
-          isAvailable: balance?.available === 0,
-          isClaimedToday: false,
-          isLoading: false,
-        },
-      });
+      const state = await getBonusState();
+      setBonusState(state);
     } catch (err) {
       handleError(err, 'Nie udało się pobrać stanu bonusów');
     } finally {
       setIsLoading((prev) => ({ ...prev, bonusState: false }));
     }
-  }, [balance?.available]);
+  }, []);
 
 
   useEffect(() => {
     fetchBalance();
     fetchLedger(ledgerFilter, true);
+    fetchBonusState();
   }, []);
-
-  useEffect(() => {
-    // Fetch bonus state after balance is known
-    if (balance !== null) {
-        fetchBonusState();
-    }
-  }, [balance, fetchBonusState]);
   
   const refreshData = () => {
     fetchBalance();
@@ -138,42 +160,143 @@ export const useTokensView = () => {
     fetchLedger(filter, true);
   };
 
+  const clearActionFeedback = () => setActionFeedback(null);
+
   const handleClaimSignupBonus = async () => {
-    setBonusState((prev) => ({ ...prev, signup: { ...prev.signup, isLoading: true } }));
+    const fallbackMessage = 'Nie udało się odebrać bonusu powitalnego.';
+    setActionFeedback(null);
+    setBonusState((prev) =>
+      prev
+        ? {
+            ...prev,
+            signup: { ...prev.signup, isLoading: true },
+          }
+        : prev,
+    );
     try {
       const result = await claimSignupBonus();
-      toast.success(`Przyznano ${result.amount} żetonów bonusu powitalnego!`);
+      const amount = result?.amount ?? 0;
+      toast.success(`Przyznano ${amount} żetonów bonusu powitalnego!`);
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              signup: { isClaimed: true, isLoading: false },
+            }
+          : prev,
+      );
+      setActionFeedback({
+        type: 'success',
+        message: `Przyznano ${amount} żetonów bonusu powitalnego.`,
+      });
       refreshData();
-    } catch (error) {
-      handleError(error, 'Nie udało się odebrać bonusu powitalnego.');
-    } finally {
-        // State will be updated on refreshData
+    } catch (err) {
+      const message = err instanceof Error ? err.message : fallbackMessage;
+      setActionFeedback({ type: 'error', message });
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              signup: { ...prev.signup, isLoading: false },
+            }
+          : prev,
+      );
+      handleError(err, fallbackMessage);
     }
   };
 
   const handleClaimListingBonus = async (toolId: string) => {
-    setBonusState((prev) => ({ ...prev, listing: { ...prev.listing, isLoading: true } }));
+    const fallbackMessage = 'Nie udało się odebrać bonusu za wystawienie.';
+    setActionFeedback(null);
+    setBonusState((prev) =>
+      prev
+        ? {
+            ...prev,
+            listing: { ...prev.listing, isLoading: true },
+          }
+        : prev,
+    );
     try {
       const result = await claimListingBonus(toolId);
-      toast.success(`Przyznano ${result.amount} żetonów za wystawienie narzędzia!`);
+      const amount = result?.amount ?? 0;
+      toast.success(`Przyznano ${amount} żetonów za wystawienie narzędzia!`);
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              listing: {
+                ...prev.listing,
+                isLoading: false,
+                claimsUsed: result?.count_used ?? prev.listing.claimsUsed,
+              },
+            }
+          : prev,
+      );
+      setActionFeedback({
+        type: 'success',
+        message: `Przyznano ${amount} żetonów za wystawienie narzędzia.`,
+      });
       refreshData();
-    } catch (error) {
-      handleError(error, 'Nie udało się odebrać bonusu za wystawienie.');
-    } finally {
-        // State will be updated on refreshData
+    } catch (err) {
+      const message = err instanceof Error ? err.message : fallbackMessage;
+      setActionFeedback({ type: 'error', message });
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              listing: { ...prev.listing, isLoading: false },
+            }
+          : prev,
+      );
+      handleError(err, fallbackMessage);
     }
   };
 
   const handleClaimRescueBonus = async () => {
-    setBonusState((prev) => ({ ...prev, rescue: { ...prev.rescue, isLoading: true } }));
+    const fallbackMessage = 'Nie udało się odebrać bonusu ratunkowego.';
+    setActionFeedback(null);
+    setBonusState((prev) =>
+      prev
+        ? {
+            ...prev,
+            rescue: { ...prev.rescue, isLoading: true },
+          }
+        : prev,
+    );
     try {
       const result = await claimRescueBonus();
-      toast.success(`Przyznano ${result.amount} żeton ratunkowy!`);
+      const amount = result?.amount ?? 0;
+      toast.success(`Przyznano ${amount} żeton ratunkowy!`);
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              rescue: {
+                ...prev.rescue,
+                isLoading: false,
+                isClaimedToday: true,
+                isAvailable: false,
+              },
+            }
+          : prev,
+      );
+      setActionFeedback({
+        type: 'success',
+        message: `Przyznano ${amount} żeton ratunkowy.`,
+      });
       refreshData();
-    } catch (error) {
-      handleError(error, 'Nie udało się odebrać bonusu ratunkowego.');
-    } finally {
-       // State will be updated on refreshData
+    } catch (err) {
+      const message = err instanceof Error ? err.message : fallbackMessage;
+      setActionFeedback({ type: 'error', message });
+      setBonusState((prev) =>
+        prev
+          ? {
+              ...prev,
+              rescue: { ...prev.rescue, isLoading: false },
+            }
+          : prev,
+      );
+      handleError(err, fallbackMessage);
     }
   };
 
@@ -190,5 +313,7 @@ export const useTokensView = () => {
     handleClaimSignupBonus,
     handleClaimListingBonus,
     handleClaimRescueBonus,
+    actionFeedback,
+    clearActionFeedback,
   };
 };

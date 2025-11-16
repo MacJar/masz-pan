@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@/db/supabase.client';
-import type { LedgerEntriesResponseDto, LedgerEntryDto, TokenBalanceDto } from '@/types';
+import type { BonusStateViewModel, LedgerEntriesResponseDto, LedgerEntryDto, TokenBalanceDto } from '@/types';
 import { GetLedgerEntriesQuerySchema } from '../schemas/token.schema';
 import { z } from 'zod';
 import {
@@ -14,6 +14,15 @@ type GetLedgerEntriesQuery = z.infer<typeof GetLedgerEntriesQuerySchema>;
 
 const POSTGREST_UNIQUE_VIOLATION_CODE = '23505';
 const POSTGREST_RAISE_EXCEPTION_CODE = 'P0001';
+export const SIGNUP_BONUS_AMOUNT = 10;
+export const LISTING_BONUS_AMOUNT = 2;
+const EUROPE_WARSAW_TZ = 'Europe/Warsaw';
+
+const getTodayDateInCET = (): string => {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: EUROPE_WARSAW_TZ,
+  }).format(new Date());
+};
 
 class TokensService {
   async getUserBalance(supabase: SupabaseClient, userId: string): Promise<TokenBalanceDto> {
@@ -92,23 +101,99 @@ class TokensService {
       kind: item.kind,
       amount: item.amount,
       details: item.details as Record<string, any>,
-      createdAt: item.created_at,
+      created_at: item.created_at,
     }));
 
     return {
-      items: mappedItems,
+      entries: mappedItems,
       nextCursor,
+    };
+  }
+
+  async getBonusState(supabase: SupabaseClient, userId: string): Promise<BonusStateViewModel> {
+    const [awardEventsResult, toolsResult, rescueClaimsResult, balance] = await Promise.all([
+      supabase
+        .from('award_events')
+        .select('kind, tool_id')
+        .eq('user_id', userId),
+      supabase
+        .from('tools')
+        .select('id, name, status, archived_at')
+        .eq('owner_id', userId)
+        .is('archived_at', null),
+      supabase
+        .from('rescue_claims')
+        .select('claim_date_cet')
+        .eq('user_id', userId)
+        .order('claim_date_cet', { ascending: false })
+        .limit(1),
+      this.getUserBalance(supabase, userId),
+    ]);
+
+    if (awardEventsResult.error) {
+      throw new SupabaseQueryError('Could not fetch award history.', awardEventsResult.error.code, awardEventsResult.error);
+    }
+
+    if (toolsResult.error) {
+      throw new SupabaseQueryError('Could not fetch user tools.', toolsResult.error.code, toolsResult.error);
+    }
+
+    if (rescueClaimsResult.error) {
+      throw new SupabaseQueryError(
+        'Could not fetch rescue bonus claims.',
+        rescueClaimsResult.error.code,
+        rescueClaimsResult.error,
+      );
+    }
+
+    const awardEvents = awardEventsResult.data ?? [];
+    const listingAwards = awardEvents.filter(event => event.kind === 'listing_bonus');
+    const listingClaimsUsed = listingAwards.length;
+    const listingAwardedToolIds = new Set(
+      listingAwards.map(event => event.tool_id).filter((toolId): toolId is string => Boolean(toolId)),
+    );
+    const signupClaimed = awardEvents.some(event => event.kind === 'signup_bonus');
+
+    const tools = toolsResult.data ?? [];
+    const eligibleTools = tools
+      .filter(tool => tool.status === 'active' && !listingAwardedToolIds.has(tool.id))
+      .map(tool => ({
+        id: tool.id,
+        name: tool.name,
+      }));
+
+    const latestRescueClaim = rescueClaimsResult.data?.[0]?.claim_date_cet ?? null;
+    const todayCET = getTodayDateInCET();
+    const isRescueClaimedToday = latestRescueClaim === todayCET;
+    const isRescueAvailable = !isRescueClaimedToday && balance.available === 0;
+
+    return {
+      signup: {
+        isClaimed: signupClaimed,
+        isLoading: false,
+      },
+      listing: {
+        eligibleTools,
+        claimsUsed: listingClaimsUsed,
+        isLoading: false,
+      },
+      rescue: {
+        isAvailable: isRescueAvailable,
+        isClaimedToday: isRescueClaimedToday,
+        isLoading: false,
+      },
     };
   }
 
   async awardSignupBonus(supabase: SupabaseClient, userId: string): Promise<void> {
     const { error } = await supabase.rpc('award_signup_bonus', {
       p_user_id: userId,
+      p_amount: SIGNUP_BONUS_AMOUNT,
     });
 
     if (error) {
       if (error.code === POSTGREST_UNIQUE_VIOLATION_CODE) {
-        throw new AlreadyAwardedError('Signup bonus already awarded.');
+        throw new AlreadyAwardedError('Bonus powitalny został już odebrany.');
       }
       throw new SupabaseQueryError('Could not award signup bonus.', error.code, error);
     }
@@ -118,14 +203,15 @@ class TokensService {
     const { error } = await supabase.rpc('award_listing_bonus', {
       p_user_id: userId,
       p_tool_id: toolId,
+      p_amount: LISTING_BONUS_AMOUNT,
     });
 
     if (error) {
       if (error.code === POSTGREST_UNIQUE_VIOLATION_CODE) {
-        throw new AlreadyAwardedError('Bonus for this tool has already been awarded.');
+        throw new AlreadyAwardedError('Bonus za to narzędzie został już odebrany.');
       }
       if (error.code === POSTGREST_RAISE_EXCEPTION_CODE && error.message.includes('listing bonus limit reached')) {
-        throw new LimitReachedError('You have reached the limit of 3 listing bonuses.');
+        throw new LimitReachedError('Wykorzystałeś już limit 3 bonusów za wystawienie.');
       }
       throw new SupabaseQueryError('Could not award listing bonus.', error.code, error);
     }

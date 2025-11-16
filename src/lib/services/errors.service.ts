@@ -66,7 +66,7 @@ export class ToolHasActiveReservationsError extends ConflictError {
 }
 
 export class AlreadyAwardedError extends ConflictError {
-  constructor(message = "Bonus already awarded.") {
+  constructor(message = "Ten bonus został już odebrany.") {
     super(message);
     this.name = "AlreadyAwardedError";
     this.code = "ALREADY_AWARDED";

@@ -9,8 +9,8 @@ export const prerender = false;
 const uuidSchema = z.string().uuid();
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const session = locals.session;
-  if (!session) {
+  const user = locals.user;
+  if (!user) {
     return new Response(null, { status: 401 });
   }
 
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     }
 
     const service = new ReservationsService(locals.supabase);
-    const result = await service.transitionReservationState(reservationId, session.user.id, validation.data);
+    const result = await service.transitionReservationState(reservationId, user.id, validation.data);
 
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {

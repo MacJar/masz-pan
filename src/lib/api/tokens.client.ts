@@ -1,9 +1,4 @@
-import type {
-  TokenBalanceDto,
-  TokenLedgerEntryDto,
-  EligibleToolDto,
-  TokenLedgerKind,
-} from '@/types';
+import type { BonusStateViewModel, TokenBalanceDto, TokenLedgerEntryDto, TokenLedgerKind } from '@/types';
 import { handleApiResponse } from './responses';
 
 export const getBalance = async (): Promise<TokenBalanceDto> => {
@@ -26,16 +21,9 @@ export const getLedger = async (
   return handleApiResponse<{ entries: TokenLedgerEntryDto[]; nextCursor: string | null }>(response);
 };
 
-export const getEligibleTools = async (): Promise<EligibleToolDto[]> => {
-  // TODO: Backend implementation needed
-  // This is a placeholder until the endpoint is ready.
-  console.warn('API endpoint for eligible tools is not implemented. Returning mock data.');
-  return Promise.resolve([
-    { id: '1', name: 'Wiertarka udarowa' },
-    { id: '2', name: 'Młot pneumatyczny' },
-  ]);
-  // const response = await fetch('/api/tools?bonus_eligible=true');
-  // return handleApiResponse<EligibleToolDto[]>(response);
+export const getBonusState = async (): Promise<BonusStateViewModel> => {
+  const response = await fetch('/api/tokens/bonus-state');
+  return handleApiResponse<BonusStateViewModel>(response);
 };
 
 export const claimSignupBonus = async (): Promise<{ awarded: boolean; amount: number }> => {
@@ -49,7 +37,7 @@ export const claimListingBonus = async (
   const response = await fetch('/api/tokens/award/listing', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool_id: toolId }),
+    body: JSON.stringify({ toolId }),
   });
   return handleApiResponse(response);
 };

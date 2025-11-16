@@ -32,7 +32,7 @@ export const LedgerEntryItem = ({ entry }: Props) => {
       <div className="flex items-center gap-4">
         <Icon className={`w-6 h-6 ${color}`} />
         <div>
-          <p className="font-semibold capitalize">{entry.description}</p>
+          <p className="font-semibold">{entry.description}</p>
           <p className="text-sm text-muted-foreground">{entry.formattedDate}</p>
         </div>
       </div>

@@ -55,12 +55,12 @@ export const BonusActions = ({
       <h2 className="text-xl font-bold mb-4">Dostępne bonusy</h2>
       <div className="grid gap-4 md:grid-cols-3">
         {/* Signup Bonus */}
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col h-full">
+          <CardHeader className="space-y-2">
             <CardTitle>Bonus powitalny</CardTitle>
             <CardDescription>Odbierz 10 żetonów za dołączenie do platformy.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button onClick={onClaimSignup} disabled={isSignupDisabled} className="w-full">
               {signup.isLoading ? 'Przetwarzanie...' : signup.isClaimed ? 'Odebrano' : 'Odbierz 10 żetonów'}
             </Button>
@@ -68,19 +68,19 @@ export const BonusActions = ({
         </Card>
 
         {/* Listing Bonus */}
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col h-full">
+          <CardHeader className="space-y-2">
             <CardTitle>Bonus za wystawienie</CardTitle>
             <CardDescription>Zdobądź 2 żetony za każde z pierwszych 3 wystawionych narzędzi.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleListingSubmit} className="space-y-4">
+          <CardContent className="mt-auto">
+            <form onSubmit={handleListingSubmit} className="flex flex-col gap-4">
               <Select
                 onValueChange={setSelectedToolId}
                 value={selectedToolId}
                 disabled={isListingDisabled}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Wybierz narzędzie" />
                 </SelectTrigger>
                 <SelectContent>
@@ -103,12 +103,12 @@ export const BonusActions = ({
         </Card>
 
         {/* Rescue Bonus */}
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col h-full">
+          <CardHeader className="space-y-2">
             <CardTitle>Bonus ratunkowy</CardTitle>
             <CardDescription>Masz puste konto? Odbierz 1 żeton, aby móc dalej działać. Dostępny raz dziennie.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button onClick={onClaimRescue} disabled={isRescueDisabled} className="w-full">
                 {rescue.isLoading ? 'Przetwarzanie...' : rescue.isClaimedToday ? 'Odebrano dzisiaj' : 'Odbierz 1 żeton'}
             </Button>

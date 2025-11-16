@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { tokensService } from "@/lib/services/tokens.service";
+import { SIGNUP_BONUS_AMOUNT, tokensService } from "@/lib/services/tokens.service";
 import { AlreadyAwardedError } from "@/lib/services/errors.service";
 import type { AwardSignupResultDTO } from "@/types";
 
@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ locals }) => {
 
     const responseBody: AwardSignupResultDTO = {
       awarded: true,
-      amount: 50, // TODO: optionally return actual amount from DB if needed
+      amount: SIGNUP_BONUS_AMOUNT,
     };
 
     return new Response(JSON.stringify(responseBody), {

@@ -259,7 +259,7 @@ export interface LedgerEntryDto {
 }
 
 export interface LedgerEntriesResponseDto {
-  items: LedgerEntryDto[];
+  entries: LedgerEntryDto[];
   nextCursor: string | null;
 }
 

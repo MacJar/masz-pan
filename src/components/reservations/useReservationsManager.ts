@@ -35,6 +35,9 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
       case "borrower_confirmed":
         availableActions.push({ type: "markAsPickedUp" });
         break;
+      case "picked_up":
+        availableActions.push({ type: "markAsReturned" });
+        break;
     }
   } else {
     // Current user is borrower
@@ -46,7 +49,6 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
         availableActions.push({ type: "confirm" }, { type: "cancel" });
         break;
       case "picked_up":
-        availableActions.push({ type: "markAsReturned" });
         break;
     }
   }

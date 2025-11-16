@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { jsonError, jsonOk } from "@/lib/api/responses";
 import { AwardListingBonusPayloadSchema } from "@/lib/schemas/token.schema";
-import { tokensService } from "@/lib/services/tokens.service";
+import { LISTING_BONUS_AMOUNT, tokensService } from "@/lib/services/tokens.service";
 import { AppError } from "@/lib/services/errors.service";
 
 export const prerender = false;
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     await tokensService.awardListingBonus(supabase, user.id, payload.toolId);
-    return jsonOk({ awarded: true, amount: 50, count_used: 1 });
+    return jsonOk({ awarded: true, amount: LISTING_BONUS_AMOUNT, count_used: 0 });
   } catch (e) {
     if (e instanceof AppError) {
       return jsonError(e.status, e.code, e.message);
