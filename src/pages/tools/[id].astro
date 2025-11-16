@@ -19,7 +19,9 @@ if (!validation.success) {
 
 let tool: ToolWithImagesDTO;
 try {
-  const response = await fetch(`${Astro.url.origin}/api/tools/${id}`);
+  const response = await fetch(`${Astro.url.origin}/api/tools/${id}`, {
+    headers: Astro.request.headers,
+  });
 
   if (!response.ok) {
     if (response.status === 404) {
