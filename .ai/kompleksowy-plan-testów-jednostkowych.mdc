@@ -1,0 +1,185 @@
+## Wprowadzenie i cele testowania
+
+### 1.1. Wprowadzenie
+
+Niniejszy dokument stanowi kompleksowy plan testów dla aplikacji "MaszPan", platformy do współdzielenia narzędzi. Plan ten został opracowany w celu zapewnienia najwyższej jakości, stabilności i bezpieczeństwa aplikacji przed jej wdrożeniem produkcyjnym. Dokument uwzględnia specyfikę stosu technologicznego, w tym Astro, React, Supabase oraz architekturę opartą na logice biznesowej w bazie danych.
+
+### 1.2. Cele testowania
+
+Główne cele procesu testowania to:
+
+- **Weryfikacja zgodności funkcjonalnej:** Upewnienie się, że wszystkie funkcje aplikacji działają zgodnie z wymaganiami biznesowymi (PRD).
+- **Zapewnienie bezpieczeństwa:** Weryfikacja, czy polityki dostępu (RLS), autoryzacja i uwierzytelnianie skutecznie chronią dane użytkowników.
+- **Ocena niezawodności:** Sprawdzenie stabilności systemu pod kątem kluczowych procesów, takich jak zarządzanie rezerwacjami i transakcjami na tokenach.
+- **Identyfikacja i eliminacja błędów:** Wczesne wykrywanie i raportowanie defektów w celu ich naprawy przed wydaniem.
+- **Potwierdzenie wydajności:** Weryfikacja, czy kluczowe operacje, takie jak wyszukiwanie przestrzenne, są wykonywane w akceptowalnym czasie.
+
+---
+
+## 2. Zakres testów
+
+### 2.1. Funkcjonalności objęte testami
+
+Testom poddane zostaną następujące moduły i funkcjonalności:
+
+- **Moduł uwierzytelniania i autoryzacji:**
+    - Rejestracja użytkownika z weryfikacją e-mail.
+    - Logowanie i wylogowywanie.
+    - Przypominanie i resetowanie hasła.
+    - Ochrona tras i API w oparciu o sesję.
+- **Moduł profilu użytkownika:**
+    - Tworzenie i edycja profilu publicznego.
+    - Zarządzanie danymi kontaktowymi i lokalizacją.
+    - Walidacja kompletności profilu (`is_complete`).
+    - Przeglądanie profili publicznych.
+- **Moduł zarządzania narzędziami:**
+    - Dodawanie, edycja i archiwizacja narzędzia.
+    - Zarządzanie zdjęciami narzędzi (upload, usuwanie).
+    - Publikowanie i wycofywanie oferty.
+- **Moduł wyszukiwania i przeglądania:**
+    - Wyszukiwanie narzędzi po nazwie i kategorii.
+    - Wyszukiwanie przestrzenne w zadanym promieniu (funkcja `nearby_tools`).
+- **Moduł rezerwacji:**
+    - Tworzenie nowej rezerwacji.
+    - Kompletna maszyna stanów rezerwacji (potwierdzanie, odrzucanie, odbiór, zwrot, anulowanie).
+    - Ocenianie i komentowanie po zakończonej rezerwacji.
+- **System tokenów i nagród:**
+    - Naliczanie tokenów bonusowych (rejestracja, dodanie pierwszego narzędzia).
+    - Prowadzenie księgi głównej tokenów (ledger).
+    - Walidacja poprawności salda.
+- **Bezpieczeństwo i polityki dostępu (RLS):**
+    - Weryfikacja dostępu do danych (profile, rezerwacje, narzędzia) w zależności od roli użytkownika (właściciel, wynajmujący, użytkownik anonimowy).
+    - Testy dostępu do danych kontaktowych (ujawniane po potwierdzeniu rezerwacji).
+
+### 2.2. Funkcjonalności wyłączone z testów
+
+- Testy obciążeniowe i wydajnościowe usług zewnętrznych (Supabase, OpenRouter.ai).
+- Testy penetracyjne (wymagają osobnego planu i narzędzi).
+- Testy A/B interfejsu użytkownika.
+
+---
+
+## 3. Typy testów do przeprowadzenia
+
+- **Testy jednostkowe (Unit Tests):** Skupione na izolowanych komponentach React, hookach, funkcjach pomocniczych w `src/lib` oraz na logice walidacji w schematach Zod.
+- **Testy integracyjne (Integration Tests):**
+    - **Frontend-Backend:** Testowanie komunikacji między komponentami React a API (Astro endpoints).
+    - **Logika w bazie danych:** Testowanie funkcji i triggerów PostgreSQL (np. maszyny stanów rezerwacji, przyznawania tokenów) poprzez wywołania z warstwy aplikacyjnej.
+    - **Polityki RLS:** Weryfikacja reguł dostępu dla różnych ról użytkowników poprzez symulowane zapytania do bazy danych.
+- **Testy End-to-End (E2E):** Symulowanie pełnych scenariuszy użytkownika w przeglądarce, od logowania po zakończenie rezerwacji, weryfikując przepływ danych i interakcje na styku Astro/React.
+- **Testy regresji (Regression Tests):** Automatyczne uruchamianie kluczowych testów E2E i integracyjnych po każdej zmianie w kodzie, aby zapobiec powstawaniu nowych błędów w działających już funkcjonalnościach.
+- **Testy dymne (Smoke Tests):** Szybki zestaw podstawowych testów E2E uruchamiany po każdym wdrożeniu na środowisko testowe w celu weryfikacji, czy aplikacja jest w ogóle stabilna.
+
+---
+
+## 4. Scenariusze testowe dla kluczowych funkcjonalności
+
+### 4.1. Ścieżka "Happy Path" dla procesu rezerwacji
+1.  **Użytkownik A** (właściciel) loguje się i dodaje nowe narzędzie.
+2.  **Użytkownik B** (wynajmujący) loguje się, znajduje narzędzie użytkownika A i wysyła prośbę o rezerwację.
+3.  **Użytkownik A** otrzymuje powiadomienie i akceptuje rezerwację.
+4.  Dane kontaktowe obu użytkowników stają się dla nich widoczne.
+5.  **Użytkownik B** potwierdza odbiór narzędzia.
+6.  **Użytkownik A** potwierdza zwrot narzędzia.
+7.  Obaj użytkownicy wystawiają sobie wzajemnie oceny.
+8.  Sprawdzenie, czy oceny zostały poprawnie zapisane i uśrednione w profilach.
+
+### 4.2. Testowanie polityk bezpieczeństwa (RLS)
+1.  **Użytkownik anonimowy:**
+    - Może przeglądać publiczne profile i narzędzia.
+    - Nie może zobaczyć danych kontaktowych.
+    - Nie może tworzyć rezerwacji.
+2.  **Zalogowany użytkownik C:**
+    - Nie może edytować profilu użytkownika A.
+    - Nie może edytować narzędzia użytkownika A.
+    - Nie widzi szczegółów rezerwacji między A i B, ani ich danych kontaktowych.
+3.  **Użytkownik A (właściciel):**
+    - Może edytować tylko swoje narzędzia.
+    - Widzi dane kontaktowe użytkownika B dopiero po obustronnym potwierdzeniu rezerwacji.
+
+### 4.3. Testowanie przyznawania tokenów
+1.  Nowy użytkownik rejestruje się -> Sprawdź, czy do jego księgi tokenów dodano wpis o bonusie za rejestrację.
+2.  Ten sam użytkownik dodaje swoje pierwsze narzędzie -> Sprawdź, czy dodano wpis o bonusie za pierwsze narzędzie.
+3.  Użytkownik dodaje drugie narzędzie -> Sprawdź, czy bonus *nie* został przyznany.
+4.  Użytkownik usuwa, a następnie ponownie dodaje pierwsze narzędzie -> Sprawdź, czy bonus *nie* został przyznany ponownie.
+
+### 4.4. Testowanie wyszukiwania przestrzennego
+1.  Dodaj narzędzia w różnych lokalizacjach (np. 1km, 5km, 15km od punktu centralnego).
+2.  Wykonaj wyszukiwanie z promieniem 10km.
+3.  Sprawdź, czy w wynikach znajdują się tylko narzędzia w promieniu 10km.
+4.  Sprawdź, czy wyniki są posortowane rosnąco według odległości.
+
+---
+
+## 5. Środowisko testowe
+
+- **Baza danych:** Dedykowana, odizolowana instancja Supabase dla celów testowych, regularnie czyszczona i seedowana danymi testowymi.
+- **Frontend/Backend:** Aplikacja uruchamiana lokalnie lub na dedykowanym środowisku stagingowym (np. Vercel/Netlify preview deployment).
+- **Zmienne środowiskowe:** Osobny zestaw kluczy API i konfiguracji dla środowiska testowego.
+
+---
+
+## 6. Narzędzia do testowania
+
+- **Test runner:** Vitest (dla testów jednostkowych i integracyjnych w środowisku Node.js).
+- **Biblioteki do testowania:** React Testing Library (do testowania komponentów React), Supertest (do testowania Astro API endpoints).
+- **Testy E2E:** Playwright (ze względu na szybkość, niezawodność i doskonałe wsparcie dla nowoczesnych frameworków).
+- **CI/CD:** GitHub Actions (do automatycznego uruchamiania testów po każdym pushu do repozytorium).
+- **Zarządzanie danymi testowymi:** Skrypty seedujące bazę danych (np. w TypeScript z użyciem klienta Supabase).
+
+---
+
+## 7. Harmonogram testów
+
+Proces testowania będzie prowadzony w sposób ciągły, zintegrowany z cyklem deweloperskim.
+
+- **Testy jednostkowe i integracyjne:** Pisane równolegle z nowymi funkcjonalnościami przez deweloperów. Muszą przejść przed mergem do głównego brancha.
+- **Testy E2E:** Rozwijane dla każdej nowej, kluczowej ścieżki użytkownika. Pełen zestaw uruchamiany przed każdym wdrożeniem na produkcję.
+- **Testy regresji:** Uruchamiane automatycznie w ramach pipeline'u CI/CD.
+- **Testy dymne:** Uruchamiane automatycznie po każdym wdrożeniu na środowisko staging/produkcyjne.
+
+---
+
+## 8. Kryteria akceptacji testów
+
+### 8.1. Kryteria wejścia
+- Kod nowej funkcjonalności został wdrożony na środowisku testowym.
+- Dostępna jest dokumentacja techniczna lub opis wymagań dla testowanej funkcji.
+
+### 8.2. Kryteria wyjścia
+- 100% testów jednostkowych i integracyjnych dla nowej logiki biznesowej przechodzi pomyślnie.
+- 100% testów E2E dla kluczowych ścieżek przechodzi pomyślnie.
+- Brak krytycznych i poważnych błędów w systemie.
+- Wszystkie zidentyfikowane błędy zostały zaraportowane i odpowiednio spriorytetyzowane.
+
+---
+
+## 9. Role i odpowiedzialności w procesie testowania
+
+- **Deweloperzy:**
+    - Pisanie testów jednostkowych i integracyjnych dla swojego kodu.
+    - Naprawa błędów zgłoszonych przez zespół QA.
+    - Utrzymywanie i aktualizacja testów.
+- **Inżynier QA:**
+    - Tworzenie i utrzymywanie planu testów.
+    - Projektowanie i implementacja testów E2E.
+    - Manualne testy eksploracyjne.
+    - Zarządzanie cyklem życia błędów (raportowanie, weryfikacja poprawek).
+    - Ostateczna akceptacja funkcjonalności przed wdrożeniem.
+
+---
+
+## 10. Procedury raportowania błędów
+
+Wszystkie wykryte błędy będą raportowane w systemie do zarządzania projektami (np. GitHub Issues) i powinny zawierać następujące informacje:
+
+- **Tytuł:** Krótki, zwięzły opis problemu.
+- **Opis:** Szczegółowy opis błędu, w tym kroki do jego odtworzenia.
+- **Wynik oczekiwany vs. Wynik rzeczywisty.**
+- **Środowisko:** Wersja aplikacji, przeglądarka, system operacyjny.
+- **Priorytet:**
+    - **Krytyczny:** Błąd blokujący kluczowe funkcjonalności, powodujący utratę danych.
+    - **Poważny:** Błąd znacznie utrudniający korzystanie z aplikacji.
+    - **Średni:** Błąd funkcjonalny, który ma obejście.
+    - **Niski:** Błąd kosmetyczny, literówka.
+- **Załączniki:** Zrzuty ekranu, nagrania wideo, logi z konsoli.

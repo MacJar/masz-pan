@@ -71,6 +71,14 @@ export const POST: APIRoute = async ({ request, cookies, params, locals }) => {
       return jsonError(500, "INTERNAL_SERVER_ERROR", "Could not save the rating");
     }
 
+    // 5. Refresh the materialized view
+    const { error: refreshError } = await supabase.rpc("refresh_rating_stats");
+    if (refreshError) {
+      // Log the error but don't fail the request, as the rating was saved.
+      // The stats will just be stale until the next refresh.
+      console.error("Error refreshing rating_stats materialized view:", refreshError);
+    }
+
     return jsonOk({ success: true });
   } catch (error) {
     console.error(error);

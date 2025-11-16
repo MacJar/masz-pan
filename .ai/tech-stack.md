@@ -42,3 +42,10 @@
 - Indeksy przestrzenne i prefiltr BBOX dla zapytań w promieniu 10 km; sortowanie po odległości.
 - Operacje na Żetonach i blokadach w tej samej transakcji co zmiana stanu rezerwacji.
 
+
+## Testowanie
+
+- **Test runner:** Vitest (dla testów jednostkowych i integracyjnych w środowisku Node.js).
+- **Biblioteki do testowania:** React Testing Library (do testowania komponentów React), Supertest (do testowania Astro API endpoints).
+- **Testy E2E:** Playwright (ze względu na szybkość, niezawodność i doskonałe wsparcie dla nowoczesnych frameworków).
+- **CI/CD:** GitHub Actions (do automatycznego uruchamiania testów po każdym pushu do repozytorium).
