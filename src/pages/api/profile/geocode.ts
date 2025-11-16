@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
-import { geocodeAndSaveForProfile } from "../../../lib/services/geocoding.service";
-import { AppError } from "../../../lib/services/errors.service";
-import { apiError, jsonError, jsonOk } from "../../../lib/api/responses";
+import { geocodeAndSaveForProfile } from "@/lib/services/geocoding.service";
+import { AppError } from "@/lib/services/errors.service";
+import { apiError, jsonError, jsonOk } from "@/lib/api/responses";
 
 export const prerender = false;
 

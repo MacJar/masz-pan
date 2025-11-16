@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { tokensService } from "../../../lib/services/tokens.service";
-import { ForbiddenError } from "../../../lib/services/errors.service";
+import { tokensService } from "@/lib/services/tokens.service";
+import { ForbiddenError } from "@/lib/services/errors.service";
 
 export const prerender = false;
 

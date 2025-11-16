@@ -1,8 +1,8 @@
 
 import type { APIRoute } from 'astro';
-import { CreateReservationSchema, GetReservationsQuerySchema } from '../../../lib/schemas/reservation.schema';
-import { ReservationsService } from '../../../lib/services/reservations.service';
-import { handleApiError } from '../../../lib/services/errors.service';
+import { CreateReservationSchema, GetReservationsQuerySchema } from '@/lib/schemas/reservation.schema';
+import { ReservationsService } from '@/lib/services/reservations.service';
+import { handleApiError } from '@/lib/services/errors.service';
 
 export const prerender = false;
 

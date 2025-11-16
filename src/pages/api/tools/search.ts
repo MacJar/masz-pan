@@ -1,14 +1,14 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
 
-import { jsonError, jsonOk } from "../../../lib/api/responses.ts";
+import { jsonError, jsonOk } from "@/lib/api/responses";
 import {
   getAuthenticatedUserId,
   logAuditEvent,
   SupabaseAuthError,
   SupabaseQueryError,
-} from "../../../lib/services/profile.service.ts";
-import { MissingLocationError, ToolsService, ValidationError } from "../../../lib/services/tools.service.ts";
+} from "@/lib/services/profile.service";
+import { MissingLocationError, ToolsService, ValidationError } from "@/lib/services/tools.service";
 
 export const prerender = false;
 

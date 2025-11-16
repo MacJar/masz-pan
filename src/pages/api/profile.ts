@@ -1,6 +1,6 @@
 import type { APIContext } from "astro";
 
-import type { ProfileDTO, ProfileUpsertCommand } from "../../types.ts";
+import type { ProfileDTO, ProfileUpsertCommand } from "@/types";
 import {
   SupabaseAuthError,
   SupabaseQueryError,
@@ -9,10 +9,10 @@ import {
   getAuthenticatedUserId,
   UsernameTakenError,
   upsertOwnProfile,
-} from "../../lib/services/profile.service.ts";
-import { jsonError, jsonOk, jsonCreated } from "../../lib/api/responses.ts";
+} from "@/lib/services/profile.service";
+import { jsonError, jsonOk, jsonCreated } from "@/lib/api/responses";
 import { z } from "zod";
-import { createSupabaseServerClient } from '../../db/supabase.client.ts';
+import { createSupabaseServerClient } from "@/db/supabase.client";
 
 class ProfilePayloadError extends Error {
   constructor(message: string) {

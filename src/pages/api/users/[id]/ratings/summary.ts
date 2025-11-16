@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { apiError, apiSuccess } from "../../../../../lib/api/responses";
-import { BadRequestError, NotFoundError } from "../../../../../lib/services/errors.service";
-import { getRatingSummary } from "../../../../../lib/services/profile.service";
+import { apiError, apiSuccess } from "@/lib/api/responses";
+import { BadRequestError, NotFoundError } from "@/lib/services/errors.service";
+import { getRatingSummary } from "@/lib/services/profile.service";
 
 export const prerender = false;
 

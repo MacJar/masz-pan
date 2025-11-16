@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../db/supabase.client';
-import { forgotPasswordSchema } from '../../../lib/schemas/auth.schema';
+import { forgotPasswordSchema } from '@/lib/schemas/auth.schema';
 import { ZodError } from 'zod';
 
 export const prerender = false;

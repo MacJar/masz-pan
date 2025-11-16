@@ -1,7 +1,7 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
-import { jsonError, jsonOk } from "../../../lib/api/responses";
-import { GeocodingService } from "../../../lib/services/geocoding.service";
+import { jsonError, jsonOk } from "@/lib/api/responses";
+import { geocodeLocation } from "@/lib/services/geocoding.service";
 
 export const prerender = false;
 
@@ -17,8 +17,10 @@ export async function GET({ url }: APIContext): Promise<Response> {
   }
 
   try {
-    const service = new GeocodingService();
-    const result = await service.geocode(parsed.data.q);
+    const result = await geocodeLocation(parsed.data.q);
+    if (!result) {
+      return jsonError(404, "geocoding_error", "Location could not be resolved.");
+    }
     return jsonOk(result);
   } catch (error) {
     console.error("Geocoding API error:", error);

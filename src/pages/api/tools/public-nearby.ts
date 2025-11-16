@@ -1,8 +1,8 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
-import { jsonError, jsonOk } from "../../../lib/api/responses";
-import { SupabaseQueryError } from "../../../lib/services/errors.service";
-import { ToolsService } from "../../../lib/services/tools.service";
+import { jsonError, jsonOk } from "@/lib/api/responses";
+import { SupabaseQueryError } from "@/lib/services/errors.service";
+import { ToolsService } from "@/lib/services/tools.service";
 
 export const prerender = false;
 

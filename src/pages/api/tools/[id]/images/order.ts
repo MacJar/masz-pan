@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { APIRoute } from "astro";
-import { _Error, _Response } from "@/lib/api/responses";
-import { getSupabase } from "@/db/supabase";
+import { jsonError, jsonOk } from "@/lib/api/responses";
 import { getToolImagePublicUrl } from "@/lib/utils";
 
 export const prerender = false;
@@ -11,21 +10,24 @@ const ReorderImagesCommandSchema = z.object({
 });
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const supabase = getSupabase(locals);
+  const { supabase } = locals;
+  if (!supabase) {
+    return jsonError(500, "INTERNAL_SERVER_ERROR", "Supabase client is not available");
+  }
   const { id: toolId } = params;
 
   if (!toolId) {
-    return _Error(400, "Tool ID is required");
+    return jsonError(400, "INVALID_TOOL_ID", "Tool ID is required");
   }
 
   const session = await locals.auth.getSession();
   if (!session) {
-    return _Error(401, "Unauthorized");
+    return jsonError(401, "UNAUTHORIZED", "Unauthorized");
   }
 
   const validation = ReorderImagesCommandSchema.safeParse(await request.json());
   if (!validation.success) {
-    return _Error(400, "Invalid request body", validation.error);
+    return jsonError(400, "INVALID_REQUEST", "Invalid request body", validation.error);
   }
 
   const { imageIds } = validation.data;
@@ -38,11 +40,11 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     .single();
 
   if (toolError || !tool) {
-    return _Error(404, "Tool not found");
+    return jsonError(404, "NOT_FOUND", "Tool not found");
   }
 
   if (tool.owner_id !== session.user.id) {
-    return _Error(403, "Forbidden");
+    return jsonError(403, "FORBIDDEN", "Forbidden");
   }
 
   try {
@@ -59,7 +61,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
   } catch (error) {
     console.error("Error reordering images:", error);
-    return _Error(500, "Failed to reorder images");
+    return jsonError(500, "REORDER_FAILED", "Failed to reorder images");
   }
 
   const { data: updatedImages, error: updatedImagesError } = await supabase
@@ -69,7 +71,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     .order("position", { ascending: true });
 
   if (updatedImagesError) {
-    return _Error(500, "Failed to fetch updated images");
+    return jsonError(500, "FETCH_FAILED", "Failed to fetch updated images");
   }
 
   const imagesWithUrl = (updatedImages ?? []).map((image) => ({
@@ -77,5 +79,5 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     public_url: getToolImagePublicUrl(image.storage_key),
   }));
 
-  return _Response(imagesWithUrl, 200);
+  return jsonOk(imagesWithUrl);
 };

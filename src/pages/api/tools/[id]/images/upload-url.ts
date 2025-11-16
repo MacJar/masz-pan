@@ -3,8 +3,8 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { CreateToolImageUploadUrlCommand } from "../../../../../types";
-import { AppError, ForbiddenError, NotFoundError } from "../../../../../lib/services/errors.service";
-import { ToolsService } from "../../../../../lib/services/tools.service";
+import { AppError, ForbiddenError, NotFoundError } from "@/lib/services/errors.service";
+import { ToolsService } from "@/lib/services/tools.service";
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const { user, supabase } = locals;

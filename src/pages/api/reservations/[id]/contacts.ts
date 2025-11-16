@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { ReservationsService } from "../../../../lib/services/reservations.service";
-import { handleApiError } from "../../../../lib/services/errors.service";
+import { ReservationsService } from "@/lib/services/reservations.service";
+import { handleApiError } from "@/lib/services/errors.service";
 
 export const prerender = false;
 

@@ -1,20 +1,20 @@
 import type { APIRoute } from "astro";
-import { AppError, UnprocessableEntityError } from "../../../../lib/services/errors.service";
-import { createApiErrorResponse, createApiSuccessResponse } from "../../../../lib/api/responses";
-import { ToolsService } from "../../../../lib/services/tools.service";
-import { ToolIdParamSchema } from "../../../../lib/schemas/tool.schema";
+import { AppError, UnprocessableEntityError } from "@/lib/services/errors.service";
+import { jsonError, jsonOk } from "@/lib/api/responses";
+import { ToolsService } from "@/lib/services/tools.service";
+import { ToolIdParamSchema } from "@/lib/schemas/tool.schema";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ params, locals }) => {
   const { user } = locals;
   if (!user) {
-    return createApiErrorResponse(401, "Unauthorized");
+    return jsonError(401, "UNAUTHORIZED", "User is not authenticated.");
   }
 
   const validation = ToolIdParamSchema.safeParse(params);
   if (!validation.success) {
-    return createApiErrorResponse(400, "Invalid tool ID format", validation.error.flatten());
+    return jsonError(400, "INVALID_TOOL_ID", "Invalid tool ID format", validation.error.flatten());
   }
 
   const { id: toolId } = validation.data;
@@ -22,16 +22,16 @@ export const POST: APIRoute = async ({ params, locals }) => {
 
   try {
     const publishedTool = await toolService.publishTool(toolId, user.id);
-    return createApiSuccessResponse(publishedTool);
+    return jsonOk(publishedTool);
   } catch (err) {
     if (err instanceof AppError) {
-      return createApiErrorResponse(err.status, err.message);
+      return jsonError(err.status, err.code, err.message);
     }
     if (err instanceof UnprocessableEntityError) {
-      return createApiErrorResponse(422, err.message);
+      return jsonError(422, "UNPROCESSABLE_ENTITY", err.message);
     }
     console.error("Error publishing tool:", err);
-    return createApiErrorResponse(500, "Failed to publish tool due to an unexpected error.");
+    return jsonError(500, "INTERNAL_SERVER_ERROR", "Failed to publish tool due to an unexpected error.");
   }
 };
 

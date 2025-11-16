@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { ToolsService } from "../../../lib/services/tools.service";
+import { ToolsService } from "@/lib/services/tools.service";
 import { z } from "zod";
 import type { ToolStatus } from "@/types";
 
