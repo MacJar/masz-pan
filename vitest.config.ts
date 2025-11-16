@@ -12,6 +12,17 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.test.{ts,tsx}',
+        '**/*.config.{ts,js}',
+        '**/types.ts',
+      ],
+    },
   },
   resolve: {
     alias: {
