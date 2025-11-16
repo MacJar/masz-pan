@@ -251,18 +251,34 @@ export function useNewToolManager() {
   }, [state.toolId, state.name, state.description, state.suggested_price_tokens, canSaveDraft]);
 
   const handlePublish = useCallback(async () => {
-    if (!canPublish || !state.toolId) return;
+    if (!canPublish) return;
 
     dispatch({ type: "PUBLISH_START" });
     try {
-      const publishedTool = await publishTool(state.toolId);
+      const draftData: UpdateToolCommand = {
+        name: state.name,
+        description: state.description,
+        suggested_price_tokens: state.suggested_price_tokens,
+      };
+
+      let toolId = state.toolId;
+
+      if (toolId) {
+        await updateDraftTool(toolId, draftData);
+      } else {
+        const newDraft = await createDraftTool(draftData);
+        toolId = newDraft.id;
+        dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId } });
+      }
+
+      const publishedTool = await publishTool(toolId);
       dispatch({ type: "PUBLISH_SUCCESS" });
       window.location.href = `/tools/${publishedTool.id}`;
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unknown error occurred";
       dispatch({ type: "PUBLISH_ERROR", payload: { error: message } });
     }
-  }, [state.toolId, canPublish]);
+  }, [state.toolId, state.name, state.description, state.suggested_price_tokens, canPublish]);
 
   return {
     state,

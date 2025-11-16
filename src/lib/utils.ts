@@ -5,11 +5,27 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function resolveSupabaseUrl(): string | undefined {
+  if (typeof window !== "undefined" && window.__SUPABASE_URL) {
+    return window.__SUPABASE_URL;
+  }
+
+  if (import.meta.env.PUBLIC_SUPABASE_URL) {
+    return import.meta.env.PUBLIC_SUPABASE_URL;
+  }
+
+  return import.meta.env.SUPABASE_URL;
+}
+
 export function getToolImagePublicUrl(storageKey: string): string {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
+  const supabaseUrl = resolveSupabaseUrl();
   if (!supabaseUrl) {
-    console.warn("SUPABASE_URL is not defined, returning empty string for tool image URL.");
+    console.warn("Supabase URL is not defined, returning empty string for tool image URL.");
     return "";
   }
-  return `${supabaseUrl}/storage/v1/object/public/tool_images/${storageKey}`;
+
+  const normalizedBase = supabaseUrl.replace(/\/$/, "");
+  const normalizedKey = storageKey.replace(/^\//, "");
+
+  return `${normalizedBase}/storage/v1/object/public/tool_images/${normalizedKey}`;
 }

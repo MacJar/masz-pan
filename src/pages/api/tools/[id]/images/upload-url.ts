@@ -7,9 +7,16 @@ import { AppError, ForbiddenError, NotFoundError } from "../../../../../lib/serv
 import { ToolsService } from "../../../../../lib/services/tools.service";
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const session = locals?.session;
+  const { user, supabase } = locals;
 
-  if (!session?.user) {
+  if (!supabase) {
+    return new Response(JSON.stringify({ error: { message: "Internal server configuration error" } }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (!user) {
     return new Response(JSON.stringify({ error: { message: "Unauthorized" } }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
@@ -48,10 +55,10 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   }
 
   const command = validation.data;
-  const toolsService = new ToolsService(locals.supabase);
+  const toolsService = new ToolsService(supabase);
 
   try {
-    const result = await toolsService.createSignedImageUploadUrl(toolId, session.user.id, command);
+    const result = await toolsService.createSignedImageUploadUrl(toolId, user.id, command);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
