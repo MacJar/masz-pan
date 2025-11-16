@@ -1,25 +1,25 @@
-import type { SupabaseClient } from '@/db/supabase.client';
-import type { BonusStateViewModel, LedgerEntriesResponseDto, LedgerEntryDto, TokenBalanceDto } from '@/types';
-import { GetLedgerEntriesQuerySchema } from '../schemas/token.schema';
-import { z } from 'zod';
+import type { SupabaseClient } from "@/db/supabase.client";
+import type { BonusStateViewModel, LedgerEntriesResponseDto, LedgerEntryDto, TokenBalanceDto } from "@/types";
+import { GetLedgerEntriesQuerySchema } from "../schemas/token.schema";
+import { z } from "zod";
 import {
   AlreadyAwardedError,
   ConflictError,
   LimitReachedError,
   SupabaseQueryError,
   UnprocessableEntityError,
-} from './errors.service';
+} from "./errors.service";
 
 type GetLedgerEntriesQuery = z.infer<typeof GetLedgerEntriesQuerySchema>;
 
-const POSTGREST_UNIQUE_VIOLATION_CODE = '23505';
-const POSTGREST_RAISE_EXCEPTION_CODE = 'P0001';
+const POSTGREST_UNIQUE_VIOLATION_CODE = "23505";
+const POSTGREST_RAISE_EXCEPTION_CODE = "P0001";
 export const SIGNUP_BONUS_AMOUNT = 10;
 export const LISTING_BONUS_AMOUNT = 2;
-const EUROPE_WARSAW_TZ = 'Europe/Warsaw';
+const EUROPE_WARSAW_TZ = "Europe/Warsaw";
 
 const getTodayDateInCET = (): string => {
-  return new Intl.DateTimeFormat('en-CA', {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: EUROPE_WARSAW_TZ,
   }).format(new Date());
 };
@@ -27,14 +27,14 @@ const getTodayDateInCET = (): string => {
 class TokensService {
   async getUserBalance(supabase: SupabaseClient, userId: string): Promise<TokenBalanceDto> {
     const { data, error } = await supabase
-      .from('balances')
-      .select('total, held, available')
-      .eq('user_id', userId)
+      .from("balances")
+      .select("total, held, available")
+      .eq("user_id", userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== "PGRST116") {
       // PGRST116: "The result contains 0 rows"
-      throw new SupabaseQueryError('Could not fetch token balance.', error.code, error);
+      throw new SupabaseQueryError("Could not fetch token balance.", error.code, error);
     }
 
     if (!data) {
@@ -57,50 +57,51 @@ class TokensService {
   async getLedgerEntries(
     supabase: SupabaseClient,
     userId: string,
-    query: GetLedgerEntriesQuery,
+    query: GetLedgerEntriesQuery
   ): Promise<LedgerEntriesResponseDto> {
     let queryBuilder = supabase
-      .from('token_ledger')
-      .select('id, kind, amount, details, created_at')
-      .eq('user_id', userId);
+      .from("token_ledger")
+      .select("id, kind, amount, details, created_at")
+      .eq("user_id", userId);
 
     if (query.kind) {
-      queryBuilder = queryBuilder.eq('kind', query.kind);
+      queryBuilder = queryBuilder.eq("kind", query.kind);
     }
 
     if (query.cursor) {
       try {
-        const decodedCursor = Buffer.from(query.cursor, 'base64').toString('ascii');
-        const [createdAt, id] = decodedCursor.split(',');
+        const decodedCursor = Buffer.from(query.cursor, "base64").toString("ascii");
+        const [createdAt, id] = decodedCursor.split(",");
         if (createdAt && id) {
-          queryBuilder = queryBuilder.lt('created_at', createdAt).or(`created_at.eq.${createdAt},id.lt.${id}`);
+          queryBuilder = queryBuilder.lt("created_at", createdAt).or(`created_at.eq.${createdAt},id.lt.${id}`);
         }
-      } catch (e) {
+      } catch {
         // Invalid cursor, ignore it
-        console.warn('Invalid cursor provided:', query.cursor);
+        // eslint-disable-next-line no-console
+        console.warn("Invalid cursor provided:", query.cursor);
       }
     }
 
-    queryBuilder = queryBuilder.order('created_at', { ascending: false }).order('id', { ascending: false });
+    queryBuilder = queryBuilder.order("created_at", { ascending: false }).order("id", { ascending: false });
 
     const { data, error } = await queryBuilder.limit(query.limit + 1);
 
     if (error) {
-      throw new SupabaseQueryError('Could not fetch token ledger.', error.code, error);
+      throw new SupabaseQueryError("Could not fetch token ledger.", error.code, error);
     }
 
     const hasNextPage = data.length > query.limit;
     const items = hasNextPage ? data.slice(0, query.limit) : data;
 
     const nextCursor = hasNextPage
-      ? Buffer.from(`${items[items.length - 1].created_at},${items[items.length - 1].id}`).toString('base64')
+      ? Buffer.from(`${items[items.length - 1].created_at},${items[items.length - 1].id}`).toString("base64")
       : null;
 
-    const mappedItems: LedgerEntryDto[] = items.map(item => ({
+    const mappedItems: LedgerEntryDto[] = items.map((item) => ({
       id: item.id,
       kind: item.kind,
       amount: item.amount,
-      details: item.details as Record<string, any>,
+      details: item.details as Record<string, unknown>,
       created_at: item.created_at,
     }));
 
@@ -112,52 +113,49 @@ class TokensService {
 
   async getBonusState(supabase: SupabaseClient, userId: string): Promise<BonusStateViewModel> {
     const [awardEventsResult, toolsResult, rescueClaimsResult, balance] = await Promise.all([
+      supabase.from("award_events").select("kind, tool_id").eq("user_id", userId),
+      supabase.from("tools").select("id, name, status, archived_at").eq("owner_id", userId).is("archived_at", null),
       supabase
-        .from('award_events')
-        .select('kind, tool_id')
-        .eq('user_id', userId),
-      supabase
-        .from('tools')
-        .select('id, name, status, archived_at')
-        .eq('owner_id', userId)
-        .is('archived_at', null),
-      supabase
-        .from('rescue_claims')
-        .select('claim_date_cet')
-        .eq('user_id', userId)
-        .order('claim_date_cet', { ascending: false })
+        .from("rescue_claims")
+        .select("claim_date_cet")
+        .eq("user_id", userId)
+        .order("claim_date_cet", { ascending: false })
         .limit(1),
       this.getUserBalance(supabase, userId),
     ]);
 
     if (awardEventsResult.error) {
-      throw new SupabaseQueryError('Could not fetch award history.', awardEventsResult.error.code, awardEventsResult.error);
+      throw new SupabaseQueryError(
+        "Could not fetch award history.",
+        awardEventsResult.error.code,
+        awardEventsResult.error
+      );
     }
 
     if (toolsResult.error) {
-      throw new SupabaseQueryError('Could not fetch user tools.', toolsResult.error.code, toolsResult.error);
+      throw new SupabaseQueryError("Could not fetch user tools.", toolsResult.error.code, toolsResult.error);
     }
 
     if (rescueClaimsResult.error) {
       throw new SupabaseQueryError(
-        'Could not fetch rescue bonus claims.',
+        "Could not fetch rescue bonus claims.",
         rescueClaimsResult.error.code,
-        rescueClaimsResult.error,
+        rescueClaimsResult.error
       );
     }
 
     const awardEvents = awardEventsResult.data ?? [];
-    const listingAwards = awardEvents.filter(event => event.kind === 'listing_bonus');
+    const listingAwards = awardEvents.filter((event) => event.kind === "listing_bonus");
     const listingClaimsUsed = listingAwards.length;
     const listingAwardedToolIds = new Set(
-      listingAwards.map(event => event.tool_id).filter((toolId): toolId is string => Boolean(toolId)),
+      listingAwards.map((event) => event.tool_id).filter((toolId): toolId is string => Boolean(toolId))
     );
-    const signupClaimed = awardEvents.some(event => event.kind === 'signup_bonus');
+    const signupClaimed = awardEvents.some((event) => event.kind === "signup_bonus");
 
     const tools = toolsResult.data ?? [];
     const eligibleTools = tools
-      .filter(tool => tool.status === 'active' && !listingAwardedToolIds.has(tool.id))
-      .map(tool => ({
+      .filter((tool) => tool.status === "active" && !listingAwardedToolIds.has(tool.id))
+      .map((tool) => ({
         id: tool.id,
         name: tool.name,
       }));
@@ -186,21 +184,21 @@ class TokensService {
   }
 
   async awardSignupBonus(supabase: SupabaseClient, userId: string): Promise<void> {
-    const { error } = await supabase.rpc('award_signup_bonus', {
+    const { error } = await supabase.rpc("award_signup_bonus", {
       p_user_id: userId,
       p_amount: SIGNUP_BONUS_AMOUNT,
     });
 
     if (error) {
       if (error.code === POSTGREST_UNIQUE_VIOLATION_CODE) {
-        throw new AlreadyAwardedError('Bonus powitalny został już odebrany.');
+        throw new AlreadyAwardedError("Bonus powitalny został już odebrany.");
       }
-      throw new SupabaseQueryError('Could not award signup bonus.', error.code, error);
+      throw new SupabaseQueryError("Could not award signup bonus.", error.code, error);
     }
   }
 
   async awardListingBonus(supabase: SupabaseClient, userId: string, toolId: string): Promise<void> {
-    const { error } = await supabase.rpc('award_listing_bonus', {
+    const { error } = await supabase.rpc("award_listing_bonus", {
       p_user_id: userId,
       p_tool_id: toolId,
       p_amount: LISTING_BONUS_AMOUNT,
@@ -208,12 +206,12 @@ class TokensService {
 
     if (error) {
       if (error.code === POSTGREST_UNIQUE_VIOLATION_CODE) {
-        throw new AlreadyAwardedError('Bonus za to narzędzie został już odebrany.');
+        throw new AlreadyAwardedError("Bonus za to narzędzie został już odebrany.");
       }
-      if (error.code === POSTGREST_RAISE_EXCEPTION_CODE && error.message.includes('listing bonus limit reached')) {
-        throw new LimitReachedError('Wykorzystałeś już limit 3 bonusów za wystawienie.');
+      if (error.code === POSTGREST_RAISE_EXCEPTION_CODE && error.message.includes("listing bonus limit reached")) {
+        throw new LimitReachedError("Wykorzystałeś już limit 3 bonusów za wystawienie.");
       }
-      throw new SupabaseQueryError('Could not award listing bonus.', error.code, error);
+      throw new SupabaseQueryError("Could not award listing bonus.", error.code, error);
     }
   }
 
@@ -227,19 +225,19 @@ class TokensService {
    * @throws {SupabaseQueryError} For other database-related errors.
    */
   async claimRescueToken(supabase: SupabaseClient, userId: string): Promise<void> {
-    const { error } = await supabase.rpc('claim_rescue_token', { p_user_id: userId });
+    const { error } = await supabase.rpc("claim_rescue_token", { p_user_id: userId });
 
     if (error) {
       if (error.code === POSTGREST_UNIQUE_VIOLATION_CODE) {
-        throw new ConflictError('Rescue token already claimed today.');
+        throw new ConflictError("Rescue token already claimed today.");
       }
       if (
         error.code === POSTGREST_RAISE_EXCEPTION_CODE &&
-        error.message.includes('rescue token only when available = 0')
+        error.message.includes("rescue token only when available = 0")
       ) {
-        throw new UnprocessableEntityError('Rescue token is only available when your balance is zero.');
+        throw new UnprocessableEntityError("Rescue token is only available when your balance is zero.");
       }
-      throw new SupabaseQueryError('Failed to claim rescue token', error.code, error);
+      throw new SupabaseQueryError("Failed to claim rescue token", error.code, error);
     }
   }
 }

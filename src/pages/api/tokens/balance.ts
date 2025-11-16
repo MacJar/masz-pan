@@ -19,6 +19,7 @@ export async function GET({ locals }: APIContext): Promise<Response> {
     const balance = await tokensService.getUserBalance(supabase, user.id);
     return jsonOk(balance);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("API Error fetching token balance:", error);
     return jsonError(500, "internal_error", "Could not fetch token balance");
   }

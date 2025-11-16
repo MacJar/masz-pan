@@ -35,6 +35,7 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
     });
     return jsonOk(result);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Public nearby tools error:", error);
     if (error instanceof SupabaseQueryError) {
       return jsonError(500, "db_error", "Database query failed.");
@@ -42,4 +43,3 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
     return jsonError(500, "internal_error", "An unexpected error occurred.");
   }
 }
-

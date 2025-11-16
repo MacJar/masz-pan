@@ -350,6 +350,7 @@ export class ToolsService {
       // It's better to log this error but not fail the whole operation,
       // as the database record is the source of truth.
       // We can have a cleanup job for orphaned storage files later.
+      // eslint-disable-next-line no-console
       console.error("Failed to delete image from storage:", storageError);
     }
 
@@ -525,7 +526,7 @@ export class ToolsService {
         throw new Error("Invalid cursor shape");
       }
       return { lastDistance: parsed.lastDistance, lastId: parsed.lastId };
-    } catch (err) {
+    } catch {
       throw new ValidationError("Invalid cursor", { issue: "invalid_cursor" });
     }
   }
@@ -535,7 +536,7 @@ export class ToolsService {
     return Buffer.from(json, "utf8").toString("base64");
   }
 
-  async publishTool(toolId: string, userId: string): Promise<ToolWithImagesDTO> {
+  async publishTool(toolId: string): Promise<ToolWithImagesDTO> {
     const { data, error } = await this.supabase.rpc("publish_tool", {
       tool_id_to_publish: toolId,
     });

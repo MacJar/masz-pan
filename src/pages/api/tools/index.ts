@@ -28,8 +28,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   if (owner_id === "me" && !user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
-
-  const resolvedOwnerId = owner_id === "me" ? user!.id : owner_id;
+  const resolvedOwnerId = owner_id === "me" ? user.id : owner_id;
 
   try {
     const service = new ToolsService(locals.supabase);
@@ -41,6 +40,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     });
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ locals }) => {
           message: "User is not authenticated.",
         },
       }),
-      { status: 401, headers: { "Content-Type": "application/json" } },
+      { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -68,13 +68,14 @@ export const POST: APIRoute = async ({ locals }) => {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // eslint-disable-next-line no-console
     console.error("Internal Server Error:", error);
     return new Response(
       JSON.stringify({
         error: {
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "An unexpected error occurred on the server.",
+          message: error instanceof Error ? error.message : "An unexpected error occurred on the server.",
         },
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }

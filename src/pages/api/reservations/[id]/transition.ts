@@ -33,8 +33,8 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`[API] Error transitioning reservation ${reservationId}:`, error);
     return handleApiError(error);
   }
 };
-

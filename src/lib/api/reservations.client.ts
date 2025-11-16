@@ -3,9 +3,7 @@ import type { ReservationStatus } from "@/types";
 import { toast } from "sonner";
 import type { ReservationContactsDto } from "@/types";
 
-export const getMyReservations = async (params: {
-  role: "owner" | "borrower";
-}): Promise<ReservationWithToolDTO[]> => {
+export const getMyReservations = async (params: { role: "owner" | "borrower" }): Promise<ReservationWithToolDTO[]> => {
   const queryParams = new URLSearchParams({ role: params.role });
   const response = await fetch(`/api/reservations?${queryParams.toString()}`);
   if (!response.ok) {

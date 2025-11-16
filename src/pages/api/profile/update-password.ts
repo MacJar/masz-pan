@@ -18,18 +18,18 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Update password error:", error.message);
       return new Response(JSON.stringify({ error: "Nie udało się zaktualizować hasła." }), { status: 500 });
     }
 
     return new Response(JSON.stringify({ message: "Hasło zostało pomyślnie zaktualizowane." }), { status: 200 });
-
   } catch (error) {
     if (error instanceof ZodError) {
       return new Response(JSON.stringify({ error: error.errors.map((e) => e.message).join(", ") }), { status: 400 });
     }
+    // eslint-disable-next-line no-console
     console.error("Update password endpoint error:", error);
     return new Response(JSON.stringify({ error: "Wystąpił wewnętrzny błąd serwera." }), { status: 500 });
   }
 };
-

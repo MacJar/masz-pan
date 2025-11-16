@@ -66,6 +66,10 @@ const supabaseClientLintOverride = tseslint.config({
   },
 });
 
+const databaseTypesOverride = tseslint.config({
+  ignores: ["src/db/database.types.ts"],
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
@@ -73,5 +77,6 @@ export default tseslint.config(
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
   eslintPluginPrettier,
-  supabaseClientLintOverride
+  supabaseClientLintOverride,
+  databaseTypesOverride
 );

@@ -6,7 +6,7 @@ const ratingSchema = z.object({
   rating: z.number().int().min(1).max(5),
 });
 
-export const POST: APIRoute = async ({ request, cookies, params, locals }) => {
+export const POST: APIRoute = async ({ request, params, locals }) => {
   const reservationId = params.id;
   if (!reservationId) {
     return jsonError(400, "BAD_REQUEST", "Reservation ID is required");
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, cookies, params, locals }) => {
   try {
     const body = await request.json();
     parsedBody = ratingSchema.parse(body);
-  } catch (error) {
+  } catch {
     return jsonError(400, "BAD_REQUEST", "Invalid request body");
   }
 
@@ -67,6 +67,7 @@ export const POST: APIRoute = async ({ request, cookies, params, locals }) => {
       if (insertError.code === "23505") {
         return jsonError(403, "FORBIDDEN", "You have already rated this reservation");
       }
+      // eslint-disable-next-line no-console
       console.error("Error inserting rating:", insertError);
       return jsonError(500, "INTERNAL_SERVER_ERROR", "Could not save the rating");
     }
@@ -76,11 +77,13 @@ export const POST: APIRoute = async ({ request, cookies, params, locals }) => {
     if (refreshError) {
       // Log the error but don't fail the request, as the rating was saved.
       // The stats will just be stale until the next refresh.
+      // eslint-disable-next-line no-console
       console.error("Error refreshing rating_stats materialized view:", refreshError);
     }
 
     return jsonOk({ success: true });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error);
     return jsonError(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred");
   }

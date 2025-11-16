@@ -2,12 +2,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api/responses";
 import { ToolsService } from "@/lib/services/tools.service";
-import {
-  AppError,
-  BadRequestError,
-  InternalServerError,
-  UnauthorizedError,
-} from "@/lib/services/errors.service";
+import { AppError, BadRequestError, InternalServerError, UnauthorizedError } from "@/lib/services/errors.service";
 import { UpdateToolCommandSchema, type ToolArchivedResponseDto } from "@/types";
 
 export const prerender = false;
@@ -109,6 +104,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       return apiError(err);
     }
 
+    // eslint-disable-next-line no-console
     console.error("Unexpected error while archiving tool:", err);
     return apiError(new AppError("An unexpected error occurred.", 500, "INTERNAL_ERROR"));
   }

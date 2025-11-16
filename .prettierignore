@@ -1,0 +1,5 @@
+src/db/database.types.ts
+coverage/
+*.min.js
+*.min.css
+

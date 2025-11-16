@@ -35,6 +35,7 @@ export const POST: APIRoute = async ({ locals }) => {
       });
     }
 
+    // eslint-disable-next-line no-console
     console.error("Failed to award signup bonus:", error);
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {
       status: 500,

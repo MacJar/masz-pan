@@ -124,6 +124,7 @@ export function handleApiError(error: unknown): Response {
   }
 
   // Log unexpected errors to the console for debugging
+  // eslint-disable-next-line no-console
   console.error("An unexpected error occurred:", error);
 
   const errorBody = {

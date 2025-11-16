@@ -67,12 +67,27 @@ test.beforeEach(async ({ page }) => {
 test.describe("Zarządzanie narzędziami przez zalogowanego użytkownika", () => {
   test("powinien pozwolić na zalogowanie i dodanie nowego narzędzia", async ({ page }) => {
     // Krok 1: Logowanie
+    // Oczekujemy na response z API przed kliknięciem przycisku
+    const loginResponsePromise = page.waitForResponse(
+      (response) => response.url().includes("/api/auth/login") && response.request().method() === "POST"
+    );
+
+    // Wypełniamy formularz i czekamy, aż pola będą wypełnione
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Hasło").fill(password);
+
+    // Upewniamy się, że pola są wypełnione przed kliknięciem
+    await expect(page.getByLabel("Email")).toHaveValue(email);
+    await expect(page.getByLabel("Hasło")).toHaveValue(password);
+
     await page.getByRole("button", { name: "Zaloguj się" }).click();
 
+    // Czekamy na zakończenie requestu logowania
+    const loginResponse = await loginResponsePromise;
+    expect(loginResponse.status()).toBe(200);
+
     // Oczekujemy na przekierowanie na stronę główną i weryfikujemy zalogowanie
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/", { timeout: 10000 });
     await expect(page.getByRole("button", { name: "Wyloguj" })).toBeVisible();
 
     // Krok 2: Dodawanie narzędzia

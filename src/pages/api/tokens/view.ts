@@ -5,7 +5,7 @@ import { ForbiddenError } from "@/lib/services/errors.service";
 export const prerender = false;
 
 export const GET: APIRoute = async ({ locals }) => {
-  const { user, supabase } = locals;
+  const { user } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -28,6 +28,7 @@ export const GET: APIRoute = async ({ locals }) => {
       { status: 200 }
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error fetching tokens view data:", error);
     if (error instanceof ForbiddenError) {
       return new Response(JSON.stringify({ error: error.message }), { status: 403 });
