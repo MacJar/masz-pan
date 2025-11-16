@@ -6,13 +6,7 @@ interface ReservationStepperProps {
   status: ReservationStatus;
 }
 
-const STEPS: ReservationStatus[] = [
-  "requested",
-  "owner_accepted",
-  "borrower_confirmed",
-  "picked_up",
-  "returned",
-];
+const STEPS: ReservationStatus[] = ["requested", "owner_accepted", "borrower_confirmed", "picked_up", "returned"];
 
 const CANCELLED_STEPS: ReservationStatus[] = ["cancelled", "rejected"];
 
@@ -45,7 +39,7 @@ const ReservationStepper: React.FC<ReservationStepperProps> = ({ status }) => {
     if (index > currentIndex) return "oklch(0.7 0.03 180)"; // gray-400 equivalent
     // Lightness decreases evenly from 0.6 to 0.3 across 5 steps
     // First step is lighter (weaker), last step is darker (stronger)
-    const lightness = 0.6 - (index * 0.075); // 0.6, 0.525, 0.45, 0.375, 0.3
+    const lightness = 0.6 - index * 0.075; // 0.6, 0.525, 0.45, 0.375, 0.3
     return `oklch(${lightness} 0.12 180)`;
   };
 
@@ -57,10 +51,7 @@ const ReservationStepper: React.FC<ReservationStepperProps> = ({ status }) => {
           const color = getStepColor(index, currentStepIndex);
           return (
             <div key={step} className="flex-1 text-center">
-              <div
-                className="text-base font-semibold"
-                style={{ color }}
-              >
+              <div className="text-base font-semibold" style={{ color }}>
                 {getStepLabel(step)}
               </div>
             </div>
