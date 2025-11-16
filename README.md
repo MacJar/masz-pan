@@ -1,6 +1,6 @@
-# 10x Astro Starter
+# Masz Pan?
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+"Masz Pan?" is a tool-sharing platform that connects people who need tools with those who have them. It allows users to list their own tools for others to rent, as well as to search for and reserve tools they need for their projects.
 
 ## Tech Stack
 
@@ -8,6 +8,7 @@ A modern, opinionated starter template for building fast, accessible, and AI-fri
 - [React](https://react.dev/) v19.0.0 - UI library for building interactive components
 - [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
 - [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+- [Supabase](https://supabase.io/) - Open source Firebase alternative for database, auth, and storage
 
 ### Testing
 
@@ -20,14 +21,15 @@ A modern, opinionated starter template for building fast, accessible, and AI-fri
 
 - Node.js v22.14.0 (as specified in `.nvmrc`)
 - npm (comes with Node.js)
+- Supabase account and local CLI setup for database management.
 
 ## Getting Started
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
+git clone https://github.com/your-github-username/masz-pan.git
+cd masz-pan
 ```
 
 2. Install dependencies:
@@ -36,13 +38,15 @@ cd 10x-astro-starter
 npm install
 ```
 
-3. Run the development server:
+3. Set up your environment variables. Copy `.env.example` to `.env` and fill in your Supabase credentials.
+
+4. Run the development server:
 
 ```bash
 npm run dev
 ```
 
-4. Build for production:
+5. Build for production:
 
 ```bash
 npm run build
@@ -68,37 +72,14 @@ npm run build
 │   ├── layouts/    # Astro layouts
 │   ├── pages/      # Astro pages
 │   │   └── api/    # API endpoints
+│   ├── middleware/ # Astro middleware
+│   ├── db/         # Supabase client and types
+│   ├── types.ts    # Shared types
 │   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
+│   └── lib/        # Services and helpers
 ├── public/         # Public assets
+├── supabase/       # Supabase migrations
 ```
-
-## AI Development Support
-
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
-
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
-
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
 
 ## License
 

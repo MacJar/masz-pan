@@ -1,5 +1,6 @@
 {
-  "name": "10x-astro-starter",
+  "name": "masz-pan",
+  "description": "A tool-sharing platform that connects people who need tools with those who have them.",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
