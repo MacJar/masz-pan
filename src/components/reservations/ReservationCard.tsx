@@ -26,6 +26,8 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
   onReject,
 }) => {
   const { tool, counterparty, status } = reservation;
+  const toolName = tool?.name || "Nazwa narzędzia niedostępna";
+  const toolImageUrl = tool?.main_image_url || null;
   const showContactDetails = ['borrower_confirmed', 'picked_up', 'returned'].includes(status);
 
   return (
@@ -33,13 +35,23 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>{tool?.name || "Nazwa narzędzia niedostępna"}</CardTitle>
+            <CardTitle>{toolName}</CardTitle>
             <CardDescription>
               {userRole === "owner" ? `Rezerwacja od: ${counterparty.username}` : `Właściciel: ${counterparty.username}`}
             </CardDescription>
           </div>
-          {/* Placeholder for tool image */}
-          <div className="w-16 h-16 bg-gray-200 rounded-md"></div>
+          <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-200 flex items-center justify-center">
+            {toolImageUrl ? (
+              <img
+                src={toolImageUrl}
+                alt={`Miniatura narzędzia ${toolName}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <span className="text-[10px] uppercase tracking-wide text-gray-500">Brak zdjęcia</span>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>

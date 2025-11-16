@@ -53,7 +53,7 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
 
   return {
     ...dto,
-    tool: dto.tool ?? { id: dto.tool_id, name: "N/A" },
+    tool: dto.tool ?? { id: dto.tool_id, name: "N/A", main_image_url: null },
     currentUserRole,
     counterparty: counterparty ?? { id: "unknown", username: "Nieznany" },
     availableActions,

@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { CreateReservationCommand, GetReservationsQuerySchema } from "../schemas/reservation.schema";
-import type { Reservation, ReservationContactsDto, ReservationDetailsDto, ReservationListPageDTO } from "../../types";
+import type {
+  Reservation,
+  ReservationContactsDto,
+  ReservationDetailsDto,
+  ReservationListPageDTO,
+  ReservationWithToolDTO,
+} from "../../types";
 import {
   ForbiddenError,
   NotFoundError,
@@ -11,6 +17,12 @@ import {
 import { z } from "zod";
 import type { ReservationDTO, ReservationStatus, ReservationTransitionResponseDto } from "../../types";
 import { ReservationTransitionCommandSchema } from "../schemas/reservation.schema";
+import { getToolImagePublicUrl } from "../utils.ts";
+
+type ToolImageRow = {
+  tool_id: string;
+  storage_key: string;
+};
 
 type ReservationTransitionCommand = z.infer<typeof ReservationTransitionCommandSchema>;
 
@@ -193,7 +205,8 @@ export class ReservationsService {
     }
 
     const hasNextPage = data.length > limit;
-    const items = hasNextPage ? data.slice(0, limit) : data;
+    const rawItems = hasNextPage ? data.slice(0, limit) : data;
+    const items = await this.attachToolMainImages(rawItems as ReservationWithToolDTO[]);
 
     let next_cursor: string | null = null;
     if (hasNextPage) {
@@ -206,7 +219,7 @@ export class ReservationsService {
     }
 
     return {
-      items: items,
+      items,
       next_cursor,
     };
   }
@@ -376,5 +389,55 @@ export class ReservationsService {
       owner_email: contacts.owner_email,
       borrower_email: contacts.borrower_email,
     };
+  }
+
+  private async attachToolMainImages(reservations: ReservationWithToolDTO[]): Promise<ReservationWithToolDTO[]> {
+    if (reservations.length === 0) {
+      return reservations;
+    }
+
+    const toolIds = Array.from(
+      new Set(
+        reservations
+          .map((reservation) => reservation.tool?.id)
+          .filter((id): id is string => Boolean(id))
+      )
+    );
+
+    if (toolIds.length === 0) {
+      return reservations;
+    }
+
+    const { data, error } = await this.supabase
+      .from("tool_images")
+      .select("tool_id, storage_key")
+      .in("tool_id", toolIds)
+      .eq("position", 0);
+
+    if (error) {
+      console.error("Error fetching tool thumbnails for reservations:", error);
+      return reservations;
+    }
+
+    if (!data) {
+      return reservations;
+    }
+
+    const imageMap = new Map<string, string>((data as ToolImageRow[]).map((row) => [row.tool_id, row.storage_key]));
+
+    return reservations.map((reservation) => {
+      if (!reservation.tool) {
+        return reservation;
+      }
+
+      const storageKey = imageMap.get(reservation.tool.id);
+      return {
+        ...reservation,
+        tool: {
+          ...reservation.tool,
+          main_image_url: storageKey ? getToolImagePublicUrl(storageKey) : null,
+        },
+      };
+    });
   }
 }
