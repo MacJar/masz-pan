@@ -41,7 +41,7 @@ export function UpdatePasswordForm() {
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Ustaw nowe hasło</CardTitle>
+        <CardTitle className="text-2xl">Ustaw nowe hasło</CardTitle>
         <CardDescription>
           Wprowadź swoje nowe hasło poniżej.
         </CardDescription>

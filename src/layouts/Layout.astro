@@ -20,12 +20,14 @@ const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? import.meta.env.SUPAB
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <script is:inline>
-      {`window.__SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`}
+      {
+        `window.__SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`;
+      }
     </script>
   </head>
   <body class="flex min-h-screen w-full flex-col">
     <Header />
-    <main class="container mx-auto flex-1 p-4">
+    <main class="container mx-auto flex-1 p-4 pt-8">
       <slot />
     </main>
     <Toaster />

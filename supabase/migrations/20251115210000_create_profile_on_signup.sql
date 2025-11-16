@@ -2,8 +2,8 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username)
-  VALUES (new.id, new.email);
+  INSERT INTO public.profiles (id, username, is_complete)
+  VALUES (new.id, new.email, TRUE);
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

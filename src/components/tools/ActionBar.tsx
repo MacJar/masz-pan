@@ -38,7 +38,7 @@ export default function ActionBar({
 					<span>Wysyłanie...</span>
 				</>
 			) : isAvailable ? (
-				"Zgłoś zapytanie"
+				"Zapytaj o wypożyczenie"
 			) : (
 				"Narzędzie niedostępne"
 			)}

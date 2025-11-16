@@ -18,14 +18,18 @@ const ReservationsView = () => {
   return (
     <>
       <Tabs defaultValue="borrower" className="w-full" onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="borrower">Pożyczam</TabsTrigger>
-          <TabsTrigger value="owner">Użyczam</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-[72px]">
+          <TabsTrigger value="borrower" className="text-lg h-[72px]">
+            Pożyczam
+          </TabsTrigger>
+          <TabsTrigger value="owner" className="text-lg h-[72px]">
+            Użyczam
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="borrower">
           <ReservationList
             reservations={state.reservations.borrower}
-            isLoading={state.isLoading && state.activeTab === 'borrower'}
+            isLoading={state.isLoading && state.activeTab === "borrower"}
             userRole="borrower"
             onTransition={transitionState}
             onCancel={cancelReservation}
@@ -35,7 +39,7 @@ const ReservationsView = () => {
         <TabsContent value="owner">
           <ReservationList
             reservations={state.reservations.owner}
-            isLoading={state.isLoading && state.activeTab === 'owner'}
+            isLoading={state.isLoading && state.activeTab === "owner"}
             userRole="owner"
             onTransition={transitionState}
             onCancel={cancelReservation}

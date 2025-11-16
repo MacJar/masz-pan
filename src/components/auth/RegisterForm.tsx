@@ -38,7 +38,7 @@ export function RegisterForm() {
     return (
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Rejestracja udana</CardTitle>
+          <CardTitle className="text-2xl">Rejestracja udana</CardTitle>
         </CardHeader>
         <CardContent>
           <p>Sprawdź swoją skrzynkę mailową, aby potwierdzić rejestrację.</p>
@@ -55,7 +55,7 @@ export function RegisterForm() {
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Zarejestruj się</CardTitle>
+        <CardTitle className="text-2xl">Zarejestruj się</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>

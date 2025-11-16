@@ -16,12 +16,13 @@ const filters: { label: string; value: ToolStatus | 'all' }[] = [
 
 const StatusFilter: React.FC<StatusFilterProps> = ({ activeFilter, onFilterChange }) => {
   return (
-    <div className="flex space-x-2 mb-4">
+    <div className="flex space-x-2 mb-6">
       {filters.map(filter => (
         <Button
           key={filter.value}
           variant={activeFilter === filter.value ? 'default' : 'outline'}
           onClick={() => onFilterChange(filter.value)}
+          className="text-lg"
         >
           {filter.label}
         </Button>

@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import type { JSX } from "react";
 import { Button } from "@/components/ui/button";
 
 export interface SearchBarProps {
@@ -34,7 +35,7 @@ export default function SearchBar(props: SearchBarProps): JSX.Element {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Wpisz nazwę narzędzia…"
-        className="flex-1 rounded-md border px-3 py-2 text-2xl outline-none focus:ring-2 focus:ring-primary"
+        className="flex-1 rounded-md border-2 border-primary/30 px-3 py-2 text-2xl outline-none focus:ring-2 focus:ring-primary focus:border-primary/60"
       />
       <Button
         variant="default"

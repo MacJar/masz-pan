@@ -10,8 +10,9 @@ interface ToolInfoProps {
 }
 
 const statusMap: Record<ToolStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-	available: { label: "Dostępne", variant: "default" },
-	unavailable: { label: "Wypożyczone", variant: "secondary" },
+	draft: { label: "Szkic", variant: "outline" },
+	inactive: { label: "Niedostępne", variant: "secondary" },
+	active: { label: "Dostępne", variant: "default" },
 	archived: { label: "Zarchiwizowane", variant: "destructive" },
 };
 

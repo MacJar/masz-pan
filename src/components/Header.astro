@@ -1,5 +1,5 @@
 ---
-import { fetchProfileById } from "@/lib/services/profile.service";
+import { fetchProfileById, getRatingSummary } from "@/lib/services/profile.service";
 import { createSupabaseServerClient } from "@/db/supabase.client";
 import { Button } from "./ui/button";
 
@@ -7,6 +7,7 @@ const { user } = Astro.locals;
 const isAuthenticated = !!user;
 
 let username: string | undefined;
+let ratingText: string | undefined;
 
 if (isAuthenticated) {
   const supabase = createSupabaseServerClient({
@@ -15,62 +16,54 @@ if (isAuthenticated) {
   });
   const profile = await fetchProfileById(supabase, user.id);
   username = profile?.username;
+
+  const ratingSummary = await getRatingSummary(supabase, user.id);
+  if (ratingSummary) {
+    if (ratingSummary.avg_stars !== null && ratingSummary.ratings_count > 0) {
+      ratingText = `⭐ ${ratingSummary.avg_stars.toFixed(1)} (${ratingSummary.ratings_count} ocen)`;
+    } else {
+      ratingText = "brak ocen";
+    }
+  }
 }
 ---
 
-<header class="bg-background border-b">
-  <div class="container mx-auto">
-    <nav class="flex h-35 items-center justify-between">
-      <a href="/" class="flex items-center" aria-label="Masz Pan">
-        <img src="/masz-pan-logo.png" alt="Masz Pan" class="h-30 w-auto" loading="lazy" decoding="async" />
-        <span class="sr-only">Masz Pan</span>
-      </a>
-      <ul class="flex gap-4 items-center">
+<header class="relative">
+  <div class="container mx-auto flex items-center min-h-[140px] relative">
+    <a href="/" class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center" aria-label="Masz Pan">
+      <img src="/masz-pan-logo.png" alt="Masz Pan" class="h-30 w-auto" loading="lazy" decoding="async" />
+      <span class="sr-only">Masz Pan</span>
+    </a>
+    <nav class="flex-1 flex h-35 items-center justify-end">
+      <ul class="flex gap-8 items-center">
         <li>
-          <a href="/" class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >Wyszukaj narzędzie</a
-          >
+          <a href="/" class="nav-link text-lg font-medium text-muted-foreground">Wyszukaj narzędzie</a>
         </li>
         {
           isAuthenticated ? (
             <>
               <li>
-                <a
-                  href="/tools/my"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/tools/my" class="nav-link text-lg font-medium text-muted-foreground">
                   Moje narzędzia
                 </a>
               </li>
               <li>
-                <a
-                  href="/reservations/my"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/reservations/my" class="nav-link text-lg font-medium text-muted-foreground">
                   Moje rezerwacje
                 </a>
               </li>
               <li>
-                <a
-                  href="/tokens"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/tokens" class="nav-link text-lg font-medium text-muted-foreground">
                   Moje żetony
                 </a>
               </li>
               <li>
-                <a
-                  href="/tools/new"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/tools/new" class="nav-link text-lg font-medium text-muted-foreground">
                   Dodaj narzędzie
                 </a>
               </li>
               <li>
-                <a
-                  href="/profile"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/profile" class="nav-link text-lg font-medium text-muted-foreground">
                   Mój profil
                 </a>
               </li>
@@ -79,7 +72,7 @@ if (isAuthenticated) {
                   id="logout-button"
                   type="button"
                   variant="ghost"
-                  className="p-0 h-auto font-medium text-muted-foreground"
+                  className="nav-link p-0 h-auto text-lg font-medium text-muted-foreground"
                 >
                   Wyloguj
                 </Button>
@@ -88,18 +81,12 @@ if (isAuthenticated) {
           ) : (
             <>
               <li>
-                <a
-                  href="/auth/login"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/auth/login" class="nav-link text-lg font-medium text-muted-foreground">
                   Zaloguj
                 </a>
               </li>
               <li>
-                <a
-                  href="/auth/register"
-                  class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
+                <a href="/auth/register" class="nav-link text-lg font-medium text-muted-foreground">
                   Zarejestruj
                 </a>
               </li>
@@ -110,9 +97,10 @@ if (isAuthenticated) {
     </nav>
     {
       username && (
-        <div class="flex justify-end pb-2 text-sm text-muted-foreground">
+        <div class="absolute bottom-0 right-4 flex justify-end pb-4 text-sm text-muted-foreground">
           <span>
             Zalogowany jako: <strong class="font-semibold text-foreground">{username}</strong>
+            {ratingText && <span class="ml-2">| {ratingText}</span>}
           </span>
         </div>
       )

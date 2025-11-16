@@ -1,26 +1,26 @@
-import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     setLoading(true);
 
-    const response = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email }),
     });
@@ -28,20 +28,18 @@ export function ForgotPasswordForm() {
     setLoading(false);
 
     if (response.ok) {
-      setMessage('Jeśli konto istnieje, wysłaliśmy link do resetowania hasła na podany adres e-mail.');
+      setMessage("Jeśli konto istnieje, wysłaliśmy link do resetowania hasła na podany adres e-mail.");
     } else {
       const data = await response.json();
-      setError(data.error || 'Wystąpił błąd. Spróbuj ponownie.');
+      setError(data.error || "Wystąpił błąd. Spróbuj ponownie.");
     }
   };
 
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Zresetuj hasło</CardTitle>
-        <CardDescription>
-          Podaj swój adres e-mail, a wyślemy Ci link do zresetowania hasła.
-        </CardDescription>
+        <CardTitle className="text-2xl">Zresetuj hasło</CardTitle>
+        <CardDescription>Podaj swój adres e-mail, a wyślemy Ci link do zresetowania hasła.</CardDescription>
       </CardHeader>
       <CardContent>
         {message ? (
@@ -66,7 +64,7 @@ export function ForgotPasswordForm() {
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button type="submit" className="w-full mt-4" disabled={loading}>
-              {loading ? 'Wysyłanie...' : 'Wyślij link do resetowania'}
+              {loading ? "Wysyłanie..." : "Wyślij link do resetowania"}
             </Button>
           </form>
         )}

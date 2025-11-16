@@ -36,7 +36,7 @@ export function LoginForm() {
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Zaloguj się</CardTitle>
+        <CardTitle className="text-2xl">Zaloguj się</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>

@@ -31,21 +31,24 @@ export default function ImageGallery({ images, toolName }: ImageGalleryProps) {
 					className="h-full w-full rounded-lg object-cover"
 				/>
 			</div>
-			<div className="hidden grid-cols-2 grid-rows-2 gap-2 md:grid">
-				{secondaryImages.map((image) => (
-					<div key={image.storage_key}>
-						<img
-							src={image.public_url ?? getToolImagePublicUrl(image.storage_key)}
-							alt={`Zdjęcie narzędzia ${toolName} #${image.position}`}
-							className="h-full w-full rounded-lg object-cover"
-						/>
-					</div>
-				))}
-				{/* Fill remaining grid cells if fewer than 4 secondary images */}
-				{Array.from({ length: 4 - secondaryImages.length }).map((_, i) => (
-					<div key={`placeholder-${i}`} className="rounded-lg bg-muted" />
-				))}
-			</div>
+			{secondaryImages.length > 0 && (
+				<div className="hidden grid-cols-2 grid-rows-2 gap-2 md:grid">
+					{secondaryImages.map((image) => (
+						<div key={image.storage_key}>
+							<img
+								src={image.public_url ?? getToolImagePublicUrl(image.storage_key)}
+								alt={`Zdjęcie narzędzia ${toolName} #${image.position}`}
+								className="h-full w-full rounded-lg object-cover"
+							/>
+						</div>
+					))}
+				</div>
+			)}
+			{secondaryImages.length === 0 && (
+				<div className="hidden md:flex items-center justify-center h-full min-h-[200px] rounded-lg bg-muted/50 border-2 border-dashed border-muted-foreground/30">
+					<span className="text-muted-foreground text-sm">Brak dodatkowych zdjęć</span>
+				</div>
+			)}
 		</div>
 	);
 }
