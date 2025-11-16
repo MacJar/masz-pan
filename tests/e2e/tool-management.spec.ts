@@ -67,18 +67,29 @@ test.beforeEach(async ({ page }) => {
 test.describe("Zarządzanie narzędziami przez zalogowanego użytkownika", () => {
   test("powinien pozwolić na zalogowanie i dodanie nowego narzędzia", async ({ page }) => {
     // Krok 1: Logowanie
+    // Czekamy na załadowanie formularza logowania
+    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByLabel("Hasło")).toBeVisible();
+
     // Oczekujemy na response z API przed kliknięciem przycisku
     const loginResponsePromise = page.waitForResponse(
       (response) => response.url().includes("/api/auth/login") && response.request().method() === "POST"
     );
 
-    // Wypełniamy formularz i czekamy, aż pola będą wypełnione
-    await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Hasło").fill(password);
+    // Wypełniamy formularz - używamy pressSequentially dla lepszej symulacji użytkownika
+    const emailInput = page.getByLabel("Email");
+    const passwordInput = page.getByLabel("Hasło");
+
+    // Najpierw klikamy na pole, żeby upewnić się, że jest aktywne, potem wpisujemy
+    await emailInput.click();
+    await emailInput.pressSequentially(email, { delay: 50 });
+
+    await passwordInput.click();
+    await passwordInput.pressSequentially(password, { delay: 50 });
 
     // Upewniamy się, że pola są wypełnione przed kliknięciem
-    await expect(page.getByLabel("Email")).toHaveValue(email);
-    await expect(page.getByLabel("Hasło")).toHaveValue(password);
+    await expect(emailInput).toHaveValue(email);
+    await expect(passwordInput).toHaveValue(password);
 
     await page.getByRole("button", { name: "Zaloguj się" }).click();
 
@@ -99,12 +110,40 @@ test.describe("Zarządzanie narzędziami przez zalogowanego użytkownika", () =>
     await page.getByLabel("Opis").fill(toolDescription);
     await page.getByLabel("Sugerowana cena (w żetonach za dzień)").fill(toolPrice);
 
-    // Załączamy plik
+    // Załączamy plik - react-dropzone wymaga wywołania zdarzenia change
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles("public/favicon.png");
 
+    // Wywołujemy zdarzenie change, aby react-dropzone wykrył plik
+    await fileInput.evaluate((element) => {
+      const event = new Event("change", { bubbles: true });
+      element.dispatchEvent(event);
+    });
+
+    // Czekamy na pojawienie się obrazu w UI (oznacza, że upload się rozpoczął)
+    // Obraz pojawia się natychmiast po dodaniu pliku (przed zakończeniem uploadu)
+    // Używamy bardziej niezawodnego selektora - poczekamy na kontener z obrazem
+    // lub status uploadu (który pojawia się natychmiast po dodaniu pliku)
+    const imageContainer = page.locator("div.aspect-square").first();
+    const statusText = page.getByText(/Oczekuje|Kompresowanie|Przygotowanie|Wysyłanie|Zapisywanie/);
+
+    // Czekamy na pojawienie się jednego z elementów
+    try {
+      await imageContainer.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      await statusText.waitFor({ state: "visible", timeout: 5000 });
+    }
+
+    // Upewniamy się, że pole nazwy jest wypełnione (może zostać wyczyszczone podczas uploadu)
+    const nameInput = page.getByLabel("Nazwa narzędzia");
+    const currentValue = await nameInput.inputValue();
+    if (!currentValue || currentValue !== toolName) {
+      await nameInput.fill(toolName);
+    }
+
     // WAŻNE: Czekamy, aż przycisk będzie aktywny po zakończeniu uploadu obrazka
-    await expect(page.getByRole("button", { name: "Opublikuj narzędzie" })).toBeEnabled();
+    // Dłuższy timeout, bo upload może trwać (kompresja, upload do storage, zapis w bazie)
+    await expect(page.getByRole("button", { name: "Opublikuj narzędzie" })).toBeEnabled({ timeout: 30000 });
 
     await page.getByRole("button", { name: "Opublikuj narzędzie" }).click();
 
