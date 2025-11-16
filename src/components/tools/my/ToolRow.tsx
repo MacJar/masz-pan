@@ -3,6 +3,7 @@ import type { MyToolListItemViewModel } from '@/components/hooks/useMyToolsManag
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ToolStatus } from '@/types';
+import { getToolStatusMeta } from '@/lib/tool-status';
 
 type ToolRowProps = {
   tool: MyToolListItemViewModel;
@@ -11,6 +12,8 @@ type ToolRowProps = {
 };
 
 const ToolRow: React.FC<ToolRowProps> = ({ tool, onUpdate, onArchive }) => {
+  const statusMeta = getToolStatusMeta(tool.status);
+
   return (
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center space-x-4">
@@ -29,8 +32,8 @@ const ToolRow: React.FC<ToolRowProps> = ({ tool, onUpdate, onArchive }) => {
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <Badge variant={tool.status === 'active' ? 'default' : 'secondary'}>
-          {tool.status}
+        <Badge variant={statusMeta.badgeVariant}>
+          {statusMeta.label}
         </Badge>
         <div className="flex space-x-2">
           {tool.canEdit && <Button variant="outline" size="sm" onClick={() => window.location.href = `/tools/${tool.id}/edit`}>Edytuj</Button>}
