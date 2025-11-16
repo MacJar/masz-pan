@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   let requestBody;
   try {
     requestBody = await request.json();
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: { message: "Invalid JSON body" } }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -72,6 +72,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     }
 
     if (error instanceof AppError) {
+      // eslint-disable-next-line no-console
       console.error("AppError caught in upload-url:", error);
       return new Response(JSON.stringify({ error: { message: error.message, code: error.code } }), {
         status: error.status,
@@ -79,6 +80,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       });
     }
 
+    // eslint-disable-next-line no-console
     console.error("Unhandled error in upload-url:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return new Response(JSON.stringify({ error: { message: "Internal Server Error", details: errorMessage } }), {

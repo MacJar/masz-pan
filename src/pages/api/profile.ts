@@ -70,7 +70,7 @@ export async function GET(context: APIContext): Promise<Response> {
  * - 201 Created on insert
  * - 200 OK on update
  */
-export async function PUT({ locals, request, cookies }: APIContext): Promise<Response> {
+export async function PUT({ request, cookies }: APIContext): Promise<Response> {
   const supabase = createSupabaseServerClient({
     cookies: cookies,
     headers: request.headers,
@@ -116,7 +116,7 @@ export async function PUT({ locals, request, cookies }: APIContext): Promise<Res
         {
           endpoint: "/api/profile",
           reason: "username_taken",
-        },
+        }
       );
       return jsonError(409, "username_taken", "Username is already taken.");
     }
@@ -132,9 +132,10 @@ const ProfileUpsertCommandSchema = z.object({
 });
 
 function normalizeProfileUpsertCommand(input: z.infer<typeof ProfileUpsertCommandSchema>): ProfileUpsertCommand {
-  const location = typeof input.location_text === "string" && input.location_text.trim().length > 0
-    ? input.location_text.trim()
-    : null;
+  const location =
+    typeof input.location_text === "string" && input.location_text.trim().length > 0
+      ? input.location_text.trim()
+      : null;
   return {
     username: input.username.trim(),
     location_text: location,
@@ -142,15 +143,13 @@ function normalizeProfileUpsertCommand(input: z.infer<typeof ProfileUpsertComman
   };
 }
 
-function parseZodIssues(error: z.ZodError): Array<{ path: string; message: string }> {
+function parseZodIssues(error: z.ZodError): { path: string; message: string }[] {
   return error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
 }
 
-function handleUnexpectedError(
-  error: unknown,
-  context: { headers: Headers; cookies: APIContext['cookies'] },
-): Response {
-  console.error('[API:/api/profile] Unexpected Error:', error);
+function handleUnexpectedError(error: unknown): Response {
+  // eslint-disable-next-line no-console
+  console.error("[API:/api/profile] Unexpected Error:", error);
 
   const details = extractErrorDetails(error);
   return jsonError(500, "internal_error", "Unexpected server error.", details);

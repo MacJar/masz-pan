@@ -30,9 +30,8 @@ export const GET: APIRoute = async ({ params, locals }) => {
     if (error instanceof AppError) {
       return jsonError(error.status, error.code, error.message);
     }
+    // eslint-disable-next-line no-console
     console.error("Unexpected error fetching reservation:", error);
     return jsonError(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
   }
 };
-
-

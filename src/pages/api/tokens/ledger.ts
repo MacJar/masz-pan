@@ -31,6 +31,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error fetching token ledger:", error);
     return jsonError(500, "internal_error", "Could not fetch token ledger");
   }

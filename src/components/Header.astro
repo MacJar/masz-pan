@@ -108,20 +108,23 @@ if (isAuthenticated) {
   </div>
 </header>
 
-<script>
-  const logoutButton = document.getElementById("logout-button");
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async () => {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
+<script
+  is:inline
+  set:html={`
+    const logoutButton = document.getElementById("logout-button");
+    if (logoutButton) {
+      logoutButton.addEventListener("click", async () => {
+        const response = await fetch("/api/auth/logout", {
+          method: "POST",
+        });
 
-      if (response.ok) {
-        window.location.href = "/";
-      } else {
-        console.error("Logout failed");
-        alert("Wystąpił błąd podczas wylogowywania.");
-      }
-    });
-  }
-</script>
+        if (response.ok) {
+          window.location.href = "/";
+        } else {
+          console.error("Logout failed");
+          alert("Wystąpił błąd podczas wylogowywania.");
+        }
+      });
+    }
+  `}
+/>

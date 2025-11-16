@@ -1,11 +1,5 @@
-
 import type { SupabaseClient } from "@/db/supabase.client";
-import {
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-  UnprocessableEntityError,
-} from "@/lib/services/errors.service";
+import { ConflictError, ForbiddenError, NotFoundError, UnprocessableEntityError } from "@/lib/services/errors.service";
 import type { Rating } from "@/types";
 
 export interface CreateRatingCommand {
@@ -25,10 +19,7 @@ export interface CreateRatingCommand {
  * @throws {ForbiddenError} If the rater is not a participant in the reservation.
  * @throws {ConflictError} If the rater has already rated this reservation.
  */
-export async function createRating(
-  supabase: SupabaseClient,
-  command: CreateRatingCommand,
-): Promise<Rating> {
+export async function createRating(supabase: SupabaseClient, command: CreateRatingCommand): Promise<Rating> {
   const { reservationId, stars, raterId } = command;
 
   // 1. Fetch reservation from the database
@@ -92,5 +83,3 @@ export async function createRating(
 
   return newRating;
 }
-
-

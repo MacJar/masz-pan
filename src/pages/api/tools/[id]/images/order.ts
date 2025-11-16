@@ -33,11 +33,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   const { imageIds } = validation.data;
 
   // Verify ownership
-  const { data: tool, error: toolError } = await supabase
-    .from("tools")
-    .select("owner_id")
-    .eq("id", toolId)
-    .single();
+  const { data: tool, error: toolError } = await supabase.from("tools").select("owner_id").eq("id", toolId).single();
 
   if (toolError || !tool) {
     return jsonError(404, "NOT_FOUND", "Tool not found");
@@ -53,13 +49,13 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     );
 
     const results = await Promise.all(updates);
-    const firstError = results.find(r => r.error);
+    const firstError = results.find((r) => r.error);
 
     if (firstError) {
       throw firstError.error;
     }
-
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error reordering images:", error);
     return jsonError(500, "REORDER_FAILED", "Failed to reorder images");
   }

@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { ProfileDTO, ProfileUpsertCommand, PublicProfileDTO, RatingSummaryDTO, ToolSummaryDTO } from "../../types.ts";
+import type {
+  ProfileDTO,
+  ProfileUpsertCommand,
+  PublicProfileDTO,
+  RatingSummaryDTO,
+  ToolSummaryDTO,
+} from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
 import { geocodeLocation } from "./geocoding.service.ts";
 import { getToolImagePublicUrl } from "../utils.ts";
@@ -228,7 +234,7 @@ export function hasLocationChanged(prev: string | null, next: string | null): bo
 /**
  * Attempts to persist an audit event. Failures are swallowed to keep the caller's
  * control flow unaffected (e.g. when RLS denies access).
- * 
+ *
  * Uses RLS policy "audit_log_insert_auth" which allows authenticated users
  * to insert events where actor_id matches their user ID or is null.
  */
@@ -277,6 +283,7 @@ export const profileService = {
     const { data, error } = await supabase.from("public_profiles").select().eq("id", userId).single();
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching public profile:", error);
       if (error.code === "PGRST116") {
         // No rows found is not a critical error, just return null
@@ -298,12 +305,20 @@ export const profileService = {
       .order("created_at", { ascending: false });
 
     if (toolsError) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching active tools for public profile:", toolsError);
       throw new Error("Could not fetch user's public tools.");
     }
 
+    interface ToolWithImages {
+      id: string;
+      name: string | null;
+      description: string | null;
+      images: { storage_key: string }[] | null;
+    }
+
     const active_tools: ToolSummaryDTO[] = Array.isArray(tools)
-      ? tools.map((tool: any) => {
+      ? tools.map((tool: ToolWithImages) => {
           const firstImage = Array.isArray(tool.images) && tool.images.length > 0 ? tool.images[0] : null;
           const imageUrl =
             firstImage && typeof firstImage.storage_key === "string" && firstImage.storage_key.length > 0

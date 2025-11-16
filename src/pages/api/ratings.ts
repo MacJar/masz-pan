@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             details: validation.error.flatten(),
           },
         }),
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -45,12 +45,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
+    // eslint-disable-next-line no-console
     console.error("Unexpected error creating rating:", error);
     return new Response(
       JSON.stringify({ error: { message: "Internal Server Error", code: "INTERNAL_SERVER_ERROR" } }),
-      { status: 500 },
+      { status: 500 }
     );
   }
 };
-
-

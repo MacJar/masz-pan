@@ -23,9 +23,9 @@ export async function GET({ url }: APIContext): Promise<Response> {
     }
     return jsonOk(result);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Geocoding API error:", error);
     const message = error instanceof Error ? error.message : "Geocoding failed.";
     return jsonError(500, "geocoding_error", message);
   }
 }
-

@@ -17,7 +17,7 @@ export async function getProfile(): Promise<Profile | null> {
     //
     const errorData = await response.json().catch(() => ({ message: "Failed to fetch profile" }));
     const error = new Error(errorData.message || "Failed to fetch profile");
-    (error as any).status = response.status;
+    (error as Error & { status: number }).status = response.status;
     throw error;
   }
 
@@ -41,7 +41,7 @@ export async function upsertProfile(command: ProfileUpdateDto): Promise<Profile>
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: "An unexpected error occurred" }));
     const error = new Error(errorData.error || "An unexpected error occurred");
-    (error as any).status = response.status;
+    (error as Error & { status: number }).status = response.status;
     throw error;
   }
 
@@ -106,6 +106,7 @@ export async function fetchPublicProfile(userId: string): Promise<PublicProfileD
   const validationResult = PublicProfileDTOSchema.safeParse(data);
 
   if (!validationResult.success) {
+    // eslint-disable-next-line no-console
     console.error("Public profile API response validation failed", validationResult.error.flatten());
     throw new ApiValidationError("Invalid data structure from public profile API", validationResult.error);
   }

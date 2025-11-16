@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   let requestBody;
   try {
     requestBody = await request.json();
-  } catch (e) {
+  } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
   }
 
@@ -45,5 +45,3 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return handleApiError(error);
   }
 };
-
-

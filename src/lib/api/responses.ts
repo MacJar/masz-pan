@@ -57,7 +57,7 @@ export function apiSuccess<T>(status: 200 | 201, data: T): Response {
 
 export function apiError(error: unknown): Response {
   if (error instanceof AppError) {
-    const details = (error as any).details;
+    const details = (error as AppError & { details?: unknown }).details;
     return jsonError(error.status, error.code, error.message, details);
   }
 

@@ -33,4 +33,3 @@ export const GET: APIRoute = async (context) => {
     return handleApiError(error);
   }
 };
-

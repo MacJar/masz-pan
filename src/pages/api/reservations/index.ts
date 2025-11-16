@@ -1,8 +1,7 @@
-
-import type { APIRoute } from 'astro';
-import { CreateReservationSchema, GetReservationsQuerySchema } from '@/lib/schemas/reservation.schema';
-import { ReservationsService } from '@/lib/services/reservations.service';
-import { handleApiError } from '@/lib/services/errors.service';
+import type { APIRoute } from "astro";
+import { CreateReservationSchema, GetReservationsQuerySchema } from "@/lib/schemas/reservation.schema";
+import { ReservationsService } from "@/lib/services/reservations.service";
+import { handleApiError } from "@/lib/services/errors.service";
 
 export const prerender = false;
 
@@ -32,15 +31,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
 export const GET: APIRoute = async ({ locals, request }) => {
   const { user, supabase } = locals;
   if (!user) {
-    return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
   }
 
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(url.searchParams.entries());
 
   // Handling status which can be an array
-  if (url.searchParams.has('status')) {
-    const statusValues = url.searchParams.getAll('status');
+  if (url.searchParams.has("status")) {
+    const statusValues = url.searchParams.getAll("status");
     queryParams.status = statusValues.length > 1 ? statusValues : statusValues[0];
   }
 
@@ -50,8 +49,8 @@ export const GET: APIRoute = async ({ locals, request }) => {
     return new Response(
       JSON.stringify({
         error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid query parameters',
+          code: "VALIDATION_ERROR",
+          message: "Invalid query parameters",
           details: validation.error.flatten(),
         },
       }),
@@ -64,7 +63,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
     const result = await service.listUserReservations(user.id, validation.data);
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     return handleApiError(error);

@@ -19,10 +19,10 @@ import type { ReservationDTO, ReservationStatus, ReservationTransitionResponseDt
 import { ReservationTransitionCommandSchema } from "../schemas/reservation.schema";
 import { getToolImagePublicUrl } from "../utils.ts";
 
-type ToolImageRow = {
+interface ToolImageRow {
   tool_id: string;
   storage_key: string;
-};
+}
 
 type ReservationTransitionCommand = z.infer<typeof ReservationTransitionCommandSchema>;
 
@@ -125,6 +125,7 @@ export class ReservationsService {
 
     if (error || !data) {
       // Log the actual error for debugging, but don't expose details to the client.
+      // eslint-disable-next-line no-console
       console.error("Error fetching reservation details:", error);
       throw new NotFoundError("Reservation not found or you do not have permission to view it.");
     }
@@ -133,6 +134,7 @@ export class ReservationsService {
     // The `.single()` call ensures it's an object. The check for `!data.tool` handles the case where the relation is empty.
     const toolData = Array.isArray(data.tool) ? data.tool[0] : data.tool;
     if (!toolData) {
+      // eslint-disable-next-line no-console
       console.error("Inconsistent data: Reservation exists but related tool not found.");
       throw new NotFoundError("Associated tool not found for this reservation.");
     }
@@ -163,7 +165,7 @@ export class ReservationsService {
       try {
         const decodedString = Buffer.from(cursor, "base64").toString("ascii");
         decodedCursor = JSON.parse(decodedString);
-      } catch (error) {
+      } catch {
         // Invalid cursor, ignore and fetch from the beginning
       }
     }
@@ -201,6 +203,7 @@ export class ReservationsService {
     const { data, error } = await queryBuilder;
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching reservations:", error);
       throw new Error("Could not fetch reservations.");
     }
@@ -208,10 +211,8 @@ export class ReservationsService {
     const hasNextPage = data.length > limit;
     const rawItems = hasNextPage ? data.slice(0, limit) : data;
     const itemsWithRatings = rawItems.map((item) => {
-      const currentUserRating =
-        item.ratings?.find((r) => r.rater_id === userId)?.stars ?? null;
-      const counterpartyRating =
-        item.ratings?.find((r) => r.rater_id !== userId)?.stars ?? null;
+      const currentUserRating = item.ratings?.find((r) => r.rater_id === userId)?.stars ?? null;
+      const counterpartyRating = item.ratings?.find((r) => r.rater_id !== userId)?.stars ?? null;
       return { ...item, currentUserRating, counterpartyRating };
     });
 
@@ -356,7 +357,7 @@ export class ReservationsService {
       .from("reservations")
       .select("*")
       .eq("id", reservationId)
-      .single()) as { data: Reservation | null; error: any };
+      .single()) as { data: Reservation | null; error: { message?: string; code?: string } | null };
 
     if (updatedFetchError || !updatedReservation) {
       throw new InternalServerError("Failed to fetch updated reservation after cancellation.");
@@ -413,11 +414,7 @@ export class ReservationsService {
     }
 
     const toolIds = Array.from(
-      new Set(
-        reservations
-          .map((reservation) => reservation.tool?.id)
-          .filter((id): id is string => Boolean(id))
-      )
+      new Set(reservations.map((reservation) => reservation.tool?.id).filter((id): id is string => Boolean(id)))
     );
 
     if (toolIds.length === 0) {
@@ -431,6 +428,7 @@ export class ReservationsService {
       .eq("position", 0);
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching tool thumbnails for reservations:", error);
       return reservations;
     }

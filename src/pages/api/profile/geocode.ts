@@ -21,6 +21,7 @@ export const POST: APIRoute = async ({ locals }) => {
     if (err instanceof AppError) {
       return apiError(err);
     }
+    // eslint-disable-next-line no-console
     console.error("Unknown error in POST /api/profile/geocode", err);
     return jsonError(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
   }

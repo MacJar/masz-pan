@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const json = await request.json();
     payload = AwardListingBonusPayloadSchema.parse(json);
-  } catch (e) {
+  } catch {
     return jsonError(400, "validation_error", "Invalid request body.");
   }
 
@@ -32,6 +32,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (e instanceof AppError) {
       return jsonError(e.status, e.code, e.message);
     }
+    // eslint-disable-next-line no-console
     console.error("Error awarding listing bonus:", e);
     return jsonError(500, "internal_error", "Internal Server Error");
   }

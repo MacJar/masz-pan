@@ -67,7 +67,7 @@ export async function geocodeLocation(query: string): Promise<ProfileGeocodeResu
     };
     inMemoryCache.set(normalized, result);
     return result;
-  } catch (err) {
+  } catch {
     inMemoryCache.set(normalized, null);
     return null;
   } finally {

@@ -25,6 +25,7 @@ try {
     return new Response(null, { status: 404, statusText: "Not Found" });
   }
 } catch (error) {
+  // eslint-disable-next-line no-console
   console.error(`Error fetching profile for id: ${id}`, error);
   return new Response(null, { status: 500, statusText: "Internal Server Error" });
 }
@@ -36,7 +37,7 @@ const viewModel: PublicProfileViewModel = {
   locationText: profileData.location_text,
   avgRating: profileData.avg_rating,
   ratingsCount: profileData.ratings_count,
-  activeTools: profileData.active_tools.map(tool => ({
+  activeTools: profileData.active_tools.map((tool) => ({
     ...tool,
     href: `/tools/${tool.id}`,
   })),

@@ -1,13 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const LedgerKindSchema = z.enum([
-  'debit',
-  'credit',
-  'hold',
-  'release',
-  'transfer',
-  'award',
-]);
+export const LedgerKindSchema = z.enum(["debit", "credit", "hold", "release", "transfer", "award"]);
 
 export const GetLedgerEntriesQuerySchema = z.object({
   kind: LedgerKindSchema.optional(),
@@ -16,7 +9,7 @@ export const GetLedgerEntriesQuerySchema = z.object({
 });
 
 export const AwardListingBonusPayloadSchema = z.object({
-  toolId: z.string().uuid({ message: 'Valid tool ID is required' }),
+  toolId: z.string().uuid({ message: "Valid tool ID is required" }),
 });
 
 export const AwardListingBonusResponseDtoSchema = z.object({

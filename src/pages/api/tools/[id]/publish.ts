@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
   const toolService = new ToolsService(locals.supabase);
 
   try {
-    const publishedTool = await toolService.publishTool(toolId, user.id);
+    const publishedTool = await toolService.publishTool(toolId);
     return jsonOk(publishedTool);
   } catch (err) {
     if (err instanceof AppError) {
@@ -30,9 +30,8 @@ export const POST: APIRoute = async ({ params, locals }) => {
     if (err instanceof UnprocessableEntityError) {
       return jsonError(422, "UNPROCESSABLE_ENTITY", err.message);
     }
+    // eslint-disable-next-line no-console
     console.error("Error publishing tool:", err);
     return jsonError(500, "INTERNAL_SERVER_ERROR", "Failed to publish tool due to an unexpected error.");
   }
 };
-
-
