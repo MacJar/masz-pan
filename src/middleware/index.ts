@@ -43,6 +43,8 @@ export const onRequest = defineMiddleware(
       headers: request.headers,
     });
 
+    locals.supabase = supabase;
+
     if (!isDevAuthBypass) {
       const { data } = await supabase.auth.getUser();
       user = data.user;

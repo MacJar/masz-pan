@@ -77,7 +77,7 @@ export class ToolsService {
       .select(
         `
         *,
-        main_image_url:tool_images(storage_key)
+        main_image_url:tool_images!left(storage_key)
       `
       )
       .eq("owner_id", params.ownerId)
@@ -359,7 +359,10 @@ export class ToolsService {
     return newTool;
   }
 
-  async getActiveToolsNearProfile(userId: string, params: { limit: number; cursor?: string | null; }): Promise<ToolSearchPageDTO> {
+  async getActiveToolsNearProfile(
+    userId: string,
+    params: { limit: number; cursor?: string | null }
+  ): Promise<ToolSearchPageDTO> {
     // 1) Ensure profile has geocoded location
     const profile = await fetchProfileById(this.supabase, userId);
     if (!profile || !profile.location_geog) {
