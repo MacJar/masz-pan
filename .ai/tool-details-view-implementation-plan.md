@@ -205,3 +205,4 @@ Widok wymaga integracji z dwoma endpointami API.
 9.  **Testowanie**: Manualne przetestowanie wszystkich scenariuszy: widok gościa, widok właściciela, narzędzie niedostępne, błędy API, brak zdjęć.
 10. **Backend (jeśli konieczne)**: Upewnienie się, że istnieje endpoint `GET /api/users/:id/profile` zwracający `PublicProfileDTO` lub modyfikacja `GET /api/tools/:id` w celu dołączenia tych danych.
 
+

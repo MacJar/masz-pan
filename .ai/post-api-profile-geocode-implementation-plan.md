@@ -91,3 +91,4 @@ Ten punkt końcowy służy do uruchomienia procesu geokodowania dla profilu aktu
 7.  **Obsługa błędów w handlerze**: Otocz wywołanie serwisu blokiem `try...catch`. Mapuj błędy rzucane przez serwis na odpowiednie odpowiedzi HTTP (np. `return new Response(..., { status: 400 })`).
 8.  **Zwrócenie poprawnej odpowiedzi**: W przypadku sukcesu, zwróć odpowiedź `200 OK` z ciałem w formacie `ProfileGeocodeResultDTO`, używając `Response.json()`.
 
+

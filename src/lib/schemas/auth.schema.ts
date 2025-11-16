@@ -17,3 +17,4 @@ export const forgotPasswordSchema = z.object({
 export const updatePasswordSchema = z.object({
     password: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków'),
 });
+

@@ -97,3 +97,4 @@ Ten punkt końcowy jest przeznaczony do przyznawania jednorazowego bonusu w post
 4.  **Typy:**
     -   Dodaj `AwardSignupBonusResponse` do `src/types.ts`.
 
+

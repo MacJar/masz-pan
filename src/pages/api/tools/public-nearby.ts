@@ -42,3 +42,4 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
     return jsonError(500, "internal_error", "An unexpected error occurred.");
   }
 }
+

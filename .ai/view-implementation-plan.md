@@ -98,3 +98,4 @@ Ten punkt końcowy służy do pobierania szczegółowych informacji o konkretnym
     );
     ```
 
+

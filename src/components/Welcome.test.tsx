@@ -13,3 +13,4 @@ describe('Welcome component', () => {
     expect(screen.getByText('Hello, MaszPan')).toBeInTheDocument();
   });
 });
+

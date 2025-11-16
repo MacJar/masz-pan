@@ -201,3 +201,4 @@ Sugeruje się stworzenie customowego hooka `useNewToolManager`, który zamknie w
 8.  **Obsługa błędów i stanów ładowania**: Implementacja wizualnych wskaźników ładowania i czytelnych komunikatów o błędach dla wszystkich interakcji asynchronicznych.
 9.  **Testowanie**: Przetestowanie całego przepływu, w tym przypadków brzegowych (błędne dane, problemy z siecią, etc.).
 
+

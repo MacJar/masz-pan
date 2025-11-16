@@ -125,3 +125,4 @@ Struktura błędu: `jsonError(status, code, message, details?)`.
 
 
 
+

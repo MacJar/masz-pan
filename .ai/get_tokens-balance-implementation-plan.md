@@ -81,3 +81,4 @@ export interface TokenBalanceDto {
     -   Zwrócić uzyskaną odpowiedź DTO w formacie JSON z kodem `200 OK`.
     -   Dodać obsługę błędów `try-catch` dla wywołania serwisu i zwracać `500` w razie niepowodzenia.
 
+

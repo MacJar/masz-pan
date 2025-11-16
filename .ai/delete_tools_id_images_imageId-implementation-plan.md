@@ -92,3 +92,4 @@ Ten punkt końcowy jest przeznaczony do usuwania zdjęcia powiązanego z narzęd
 6.  **Weryfikacja polityk RLS:** Upewnij się, że w Supabase istnieją odpowiednie polityki RLS dla tabeli `tool_images`, które zabezpieczają operacje `DELETE`.
 7.  **Testowanie:** Przygotuj testy jednostkowe dla logiki serwisu oraz testy integracyjne dla endpointu API, obejmujące scenariusze pomyślne oraz wszystkie zidentyfikowane scenariusze błędów.
 
+

@@ -177,3 +177,4 @@ Przycisk "Zapisz" w komponencie `ProfileForm` będzie nieaktywny (`disabled`), j
 8.  **Middleware (weryfikacja)**: Upewnienie się, że istniejący middleware w `src/middleware/index.ts` poprawnie obsługuje logikę przekierowania dla użytkowników z niekompletnym profilem (`is_complete: false`).
 9.  **Testowanie manualne**: Przetestowanie wszystkich scenariuszy: ścieżka nowego użytkownika (onboarding), edycja istniejącego profilu, obsługa błędów walidacji (nazwa, lokalizacja), obsługa błędów serwera.
 
+

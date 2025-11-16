@@ -122,3 +122,4 @@ export interface LedgerEntriesResponseDto {
         -   Obsługuje potencjalne błędy i zwraca odpowiednie kody statusu.
         -   Zwraca pomyślną odpowiedź w formacie JSON.
 
+

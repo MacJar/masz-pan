@@ -168,3 +168,4 @@ Integracja z backendem będzie opierać się na dwóch głównych endpointach:
 10. Dodanie klienta API do `src/lib/api/tools.client.ts` dla nowych operacji (pobieranie listy i aktualizacja).
 11. Ostylizowanie komponentów przy użyciu Tailwind CSS i `shadcn/ui` zgodnie z projektem.
 
+

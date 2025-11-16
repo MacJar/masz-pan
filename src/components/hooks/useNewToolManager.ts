@@ -180,7 +180,7 @@ export function useNewToolManager() {
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "saving" } });
         const savedImage = await saveToolImage(toolId, {
           storage_key,
-          position: state.images.length,
+          position: state.images.filter(img => img.status === 'completed').length,
         });
 
         dispatch({

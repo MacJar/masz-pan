@@ -150,3 +150,4 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom pobieranie listy ic
     -   Przypadki brzegowe: brak rezerwacji, ostatnia strona wyników (`next_cursor: null`).
     -   Obsługę błędów dla niepoprawnych parametrów i braku uwierzytelnienia.
 
+

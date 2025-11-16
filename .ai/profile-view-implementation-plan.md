@@ -177,3 +177,4 @@ Należy utworzyć nowy plik kliencki `src/lib/api/profile.client.ts` do obsługi
     -   Istniejący użytkownik (formularz jest wypełniony, zapis aktualizuje profil).
     -   Przypadki błędów (pusta nazwa, zajęta nazwa, błąd serwera).
 
+

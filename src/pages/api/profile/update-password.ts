@@ -32,3 +32,4 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     return new Response(JSON.stringify({ error: "Wystąpił wewnętrzny błąd serwera." }), { status: 500 });
   }
 };
+

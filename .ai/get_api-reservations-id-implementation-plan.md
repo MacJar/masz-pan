@@ -112,3 +112,4 @@ export interface ReservationDetailsDto {
     -   Obsłużyć błędy z serwisu, mapując je na odpowiednie odpowiedzi HTTP (`404`, `500`).
     -   W przypadku sukcesu, zwrócić pobrane dane z kodem statusu `200`.
 
+

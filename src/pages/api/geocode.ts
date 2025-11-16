@@ -26,3 +26,4 @@ export async function GET({ url }: APIContext): Promise<Response> {
     return jsonError(500, "geocoding_error", message);
   }
 }
+

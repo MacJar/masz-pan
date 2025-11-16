@@ -61,3 +61,4 @@ const RateReservationDialog: React.FC<RateReservationDialogProps> = ({
 };
 
 export default RateReservationDialog;
+

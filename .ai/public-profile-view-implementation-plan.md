@@ -171,3 +171,4 @@ Integracja z backendem wymaga stworzenia i wykorzystania nowego punktu końcoweg
     - Próba wejścia na profil nieistniejącego użytkownika (oczekiwane 404).
     - Użycie niepoprawnego UUID w URL.
 
+

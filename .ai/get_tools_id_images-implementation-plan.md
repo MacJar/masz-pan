@@ -94,3 +94,4 @@ Punkt końcowy będzie obsługiwał następujące scenariusze błędów:
     - Poprawna obsługa nieistniejącego `id` (404).
     - Poprawna obsługa niepoprawnego `id` (400).
 
+

@@ -104,3 +104,4 @@ export function UpdatePasswordDialog({ isOpen, onClose }: UpdatePasswordDialogPr
     </Dialog>
   );
 }
+
