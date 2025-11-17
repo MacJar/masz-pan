@@ -1,12 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import type { ProfileDTO, ProfileUpsertCommand } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LocationStatus } from "./LocationStatus";
-import { ErrorDisplay } from "./ErrorDisplay";
 
 interface ProfileFormProps {
   profile: ProfileDTO | null;
@@ -22,13 +19,7 @@ const initialState: ProfileUpsertCommand = {
   rodo_consent: false,
 };
 
-export function ProfileForm({
-  profile,
-  isSubmitting,
-  onSubmit,
-  fieldErrors,
-  onClearFieldErrors,
-}: ProfileFormProps) {
+export function ProfileForm({ profile, isSubmitting, onSubmit, fieldErrors, onClearFieldErrors }: ProfileFormProps) {
   const [formData, setFormData] = useState<ProfileUpsertCommand>(initialState);
 
   useEffect(() => {
@@ -43,10 +34,7 @@ export function ProfileForm({
     }
   }, [profile]);
 
-  const handleFieldChange = (
-    field: keyof ProfileUpsertCommand,
-    value: string | boolean
-  ) => {
+  const handleFieldChange = (field: keyof ProfileUpsertCommand, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (fieldErrors[field]) {
       onClearFieldErrors(field);
@@ -58,10 +46,7 @@ export function ProfileForm({
     onSubmit(formData);
   };
 
-  const isSubmitDisabled =
-    isSubmitting ||
-    !formData.username.trim() ||
-    !formData.rodo_consent;
+  const isSubmitDisabled = isSubmitting || !formData.username.trim() || !formData.rodo_consent;
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -82,9 +67,7 @@ export function ProfileForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="location_text">
-          Lokalizacja (np. miasto, kod pocztowy)
-        </Label>
+        <Label htmlFor="location_text">Lokalizacja (np. miasto, kod pocztowy)</Label>
         <div className="flex items-center gap-2">
           <Input
             id="location_text"
@@ -99,18 +82,12 @@ export function ProfileForm({
         <Checkbox
           id="rodo_consent"
           checked={formData.rodo_consent}
-          onCheckedChange={(checked) =>
-            handleFieldChange("rodo_consent", !!checked)
-          }
+          onCheckedChange={(checked) => handleFieldChange("rodo_consent", !!checked)}
           aria-invalid={!!fieldErrors.rodo_consent}
           aria-describedby="rodo-error"
         />
-        <Label
-          htmlFor="rodo_consent"
-          className="text-sm font-normal cursor-pointer"
-        >
-          Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z
-          polityką prywatności.
+        <Label htmlFor="rodo_consent" className="text-sm font-normal cursor-pointer">
+          Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z polityką prywatności.
         </Label>
         {fieldErrors.rodo_consent && (
           <p id="rodo-error" className="text-sm text-red-500">

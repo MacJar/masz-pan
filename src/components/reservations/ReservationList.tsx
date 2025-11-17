@@ -9,7 +9,7 @@ interface ReservationListProps {
   reservations: ReservationViewModel[];
   isLoading: boolean;
   userRole: "owner" | "borrower";
-  onTransition: (id: string, status: ReservationStatus, payload?: any) => void;
+  onTransition: (id: string, status: ReservationStatus, payload?: { price_tokens?: number }) => void;
   onCancel: (id: string, reason: string) => void;
   onReject: (id: string, reason: string) => void;
   onRate: (id: string, rating: number) => void;

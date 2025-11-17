@@ -18,10 +18,10 @@ export default function LocationBanner(props: LocationBannerProps): JSX.Element 
           : "Brak wyników w okolicy lub dla podanego zapytania."}
       </p>
       <a href="/profile/edit">
-        <Button variant="outline" size="sm">Uzupełnij lokalizację</Button>
+        <Button variant="outline" size="sm">
+          Uzupełnij lokalizację
+        </Button>
       </a>
     </div>
   );
 }
-
-

@@ -6,14 +6,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { Toaster } from "@/components/ui/sonner";
 
 export function ProfileEditView() {
-  const {
-    formData,
-    isLoading,
-    isSubmitting,
-    error,
-    handleFieldChange,
-    handleSubmit,
-  } = useProfileEditor();
+  const { formData, isLoading, isSubmitting, error, handleFieldChange, handleSubmit } = useProfileEditor();
 
   if (isLoading) {
     return <SkeletonLoader />;

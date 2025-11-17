@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const EmptyState = () => {
   return (
@@ -9,5 +9,3 @@ const EmptyState = () => {
 };
 
 export default EmptyState;
-
-

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { TokenBalanceDto } from './tokens.types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { TokenBalanceDto } from "./tokens.types";
 
 interface Props {
   balance: TokenBalanceDto | null;
@@ -13,11 +13,7 @@ const StatCard = ({ title, value, isLoading }: { title: string; value: number | 
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
     </CardHeader>
     <CardContent>
-      {isLoading ? (
-        <Skeleton className="h-8 w-24" />
-      ) : (
-        <p className="text-2xl font-bold">{value ?? 'N/A'}</p>
-      )}
+      {isLoading ? <Skeleton className="h-8 w-24" /> : <p className="text-2xl font-bold">{value ?? "N/A"}</p>}
     </CardContent>
   </Card>
 );
@@ -31,5 +27,3 @@ export const TokenBalanceCard = ({ balance, isLoading }: Props) => {
     </div>
   );
 };
-
-

@@ -1,4 +1,4 @@
-import type { Tables as Row, TablesInsert as Insert, TablesUpdate as Update, Enums } from "./db/database.types";
+import type { Tables as Row, TablesInsert as Insert, Enums } from "./db/database.types";
 import { z } from "zod";
 import { LedgerKindSchema } from "./lib/schemas/token.schema";
 
@@ -268,7 +268,7 @@ export interface LedgerEntryDto {
   id: string;
   kind: LedgerEntryKind;
   amount: number;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -385,7 +385,7 @@ export interface TokenLedgerEntryDto {
   id: string;
   kind: TokenLedgerKind;
   amount: number;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string; // ISO 8601
 }
 

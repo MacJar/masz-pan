@@ -9,7 +9,7 @@ interface DangerZoneProps {
   onArchive: () => void;
 }
 
-export function DangerZone({ toolId, toolStatus, onArchive }: DangerZoneProps) {
+export function DangerZone({ toolStatus, onArchive }: DangerZoneProps) {
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
 
   if (toolStatus === "archived") {
@@ -45,5 +45,3 @@ export function DangerZone({ toolId, toolStatus, onArchive }: DangerZoneProps) {
     </div>
   );
 }
-
-

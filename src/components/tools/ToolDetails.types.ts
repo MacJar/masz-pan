@@ -5,7 +5,6 @@ import type { PublicProfileDTO, ToolWithImagesDTO } from "@/types";
  * Used by the ToolDetailsView component to manage all data required for rendering.
  */
 export interface ToolDetailsViewModel {
-	tool: ToolWithImagesDTO;
-	owner: PublicProfileDTO;
+  tool: ToolWithImagesDTO;
+  owner: PublicProfileDTO;
 }
-

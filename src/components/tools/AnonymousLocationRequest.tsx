@@ -110,4 +110,3 @@ export const AnonymousLocationRequest: React.FC<AnonymousLocationRequestProps> =
     </Card>
   );
 };
-

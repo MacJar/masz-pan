@@ -54,38 +54,41 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
     setErrorDetails(undefined);
   }, []);
 
-  const startFirstPage = useCallback((q: string) => {
-    // Cancel any previous request
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
-    lastOpRef.current = "first";
-    lastQueryRef.current = q;
+  const startFirstPage = useCallback(
+    (q: string) => {
+      // Cancel any previous request
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      lastOpRef.current = "first";
+      lastQueryRef.current = q;
 
-    setStatus("loading");
-    setIsLoadingMore(false);
-    setItems([]);
-    setNextCursor(null);
-    resetError();
+      setStatus("loading");
+      setIsLoadingMore(false);
+      setItems([]);
+      setNextCursor(null);
+      resetError();
 
-    fetchTools({ q, limit: 20, signal: abortRef.current.signal })
-      .then((page: ToolSearchPageDTO) => {
-        const vm = mapPageToVM(page);
-        setItems(vm.items);
-        setNextCursor(vm.next_cursor);
-        setStatus("ready");
-      })
-      .catch((err: unknown) => {
-        // Ignore abort noise
-        if (abortRef.current?.signal.aborted) {
-          return;
-        }
-        const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
-        const details = (err as { error?: { details?: unknown } })?.error?.details;
-        setErrorCode(code);
-        setErrorDetails(details);
-        setStatus("error");
-      });
-  }, [resetError]);
+      fetchTools({ q, limit: 20, signal: abortRef.current.signal })
+        .then((page: ToolSearchPageDTO) => {
+          const vm = mapPageToVM(page);
+          setItems(vm.items);
+          setNextCursor(vm.next_cursor);
+          setStatus("ready");
+        })
+        .catch((err: unknown) => {
+          // Ignore abort noise
+          if (abortRef.current?.signal.aborted) {
+            return;
+          }
+          const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
+          const details = (err as { error?: { details?: unknown } })?.error?.details;
+          setErrorCode(code);
+          setErrorDetails(details);
+          setStatus("error");
+        });
+    },
+    [resetError]
+  );
 
   const startNearby = useCallback(() => {
     // Cancel any previous request
@@ -125,45 +128,48 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
       });
   }, [resetError]);
 
-  const startPublicNearby = useCallback((coords: GeolocationCoordinates) => {
-    // Cancel any previous request
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
-    lastOpRef.current = "first";
-    lastQueryRef.current = "";
-    lastCoordsRef.current = coords;
+  const startPublicNearby = useCallback(
+    (coords: GeolocationCoordinates) => {
+      // Cancel any previous request
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      lastOpRef.current = "first";
+      lastQueryRef.current = "";
+      lastCoordsRef.current = coords;
 
-    setStatus("loading");
-    setMode("nearby");
-    setIsLoadingMore(false);
-    setItems([]);
-    setNextCursor(null);
-    resetError();
+      setStatus("loading");
+      setMode("nearby");
+      setIsLoadingMore(false);
+      setItems([]);
+      setNextCursor(null);
+      resetError();
 
-    fetchPublicNearbyTools({
-      limit: 20,
-      signal: abortRef.current.signal,
-      lat: coords.latitude,
-      lon: coords.longitude,
-    })
-      .then((page: ToolSearchPageDTO) => {
-        const vm = mapPageToVM(page);
-        setItems(vm.items);
-        setNextCursor(vm.next_cursor);
-        setStatus("ready");
+      fetchPublicNearbyTools({
+        limit: 20,
+        signal: abortRef.current.signal,
+        lat: coords.latitude,
+        lon: coords.longitude,
       })
-      .catch((err: unknown) => {
-        // Ignore abort noise
-        if (abortRef.current?.signal.aborted) {
-          return;
-        }
-        const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
-        const details = (err as { error?: { details?: unknown } })?.error?.details;
-        setErrorCode(code);
-        setErrorDetails(details);
-        setStatus("error");
-      });
-  }, [resetError]);
+        .then((page: ToolSearchPageDTO) => {
+          const vm = mapPageToVM(page);
+          setItems(vm.items);
+          setNextCursor(vm.next_cursor);
+          setStatus("ready");
+        })
+        .catch((err: unknown) => {
+          // Ignore abort noise
+          if (abortRef.current?.signal.aborted) {
+            return;
+          }
+          const code = (err as { error?: { code?: string; details?: unknown } })?.error?.code ?? "internal_error";
+          const details = (err as { error?: { details?: unknown } })?.error?.details;
+          setErrorCode(code);
+          setErrorDetails(details);
+          setStatus("error");
+        });
+    },
+    [resetError]
+  );
 
   const loadNext = useCallback(() => {
     if (!nextCursor || isLoadingMore || status === "loading") {
@@ -267,7 +273,7 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
     } else {
       startNearby();
     }
-  }, [initialQuery, startFirstPage, startNearby]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialQuery, startFirstPage, startNearby]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -303,5 +309,3 @@ export function useToolSearch(initialQuery?: string): [ToolSearchState, ToolSear
 
   return [state, actions];
 }
-
-

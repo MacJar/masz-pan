@@ -13,7 +13,7 @@ import StarRating from "./StarRating";
 interface ReservationCardProps {
   reservation: ReservationViewModel;
   userRole: "owner" | "borrower";
-  onTransition: (id: string, status: ReservationStatus, payload?: any) => void;
+  onTransition: (id: string, status: ReservationStatus, payload?: { price_tokens?: number }) => void;
   onCancel: (id: string, reason: string) => void;
   onReject: (id: string, reason: string) => void;
   onRate: (id: string, rating: number) => void;
@@ -76,7 +76,13 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
               {currentUserRating ? (
                 <div className="flex items-center gap-2">
                   <span>Twoja ocena:</span>
-                  <StarRating rating={currentUserRating} setRating={() => {}} disabled />
+                  <StarRating
+                    rating={currentUserRating}
+                    setRating={() => {
+                      // Rating is disabled, no-op
+                    }}
+                    disabled
+                  />
                 </div>
               ) : (
                 "Transakcja zakończona. Dziękujemy!"

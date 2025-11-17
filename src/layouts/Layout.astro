@@ -8,7 +8,6 @@ interface Props {
 }
 
 const { title = "10x Astro Starter" } = Astro.props;
-const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
 ---
 
 <!doctype html>
@@ -21,7 +20,10 @@ const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
     <title>{title}</title>
     <script is:inline>
       {
-        `window.__SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`;
+        (() => {
+          const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
+          return `window.__SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`;
+        })();
       }
     </script>
   </head>

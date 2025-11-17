@@ -42,4 +42,3 @@ const StarRating: React.FC<StarRatingProps> = ({ rating, setRating, disabled = f
 };
 
 export default StarRating;
-

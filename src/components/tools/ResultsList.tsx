@@ -1,6 +1,5 @@
 import React from "react";
 import type { ToolSearchItemVM } from "@/lib/api/tools.search.client";
-import ToolCard from "./ToolCard";
 import InfiniteScrollSentinel from "./InfiniteScrollSentinel";
 
 export interface ResultsListProps {
@@ -17,14 +16,9 @@ export default function ResultsList(props: ResultsListProps): React.JSX.Element 
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id}>
-            <a
-              href={`/tools/${item.id}`}
-              className="block rounded-lg border p-4 transition-colors hover:bg-muted/50"
-            >
+            <a href={`/tools/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
               <h3 className="font-semibold">{item.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                Dystans: {item.distanceText}
-              </p>
+              <p className="text-sm text-muted-foreground">Dystans: {item.distanceText}</p>
             </a>
           </li>
         ))}

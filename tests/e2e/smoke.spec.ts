@@ -14,4 +14,3 @@ test.describe("Smoke Test", () => {
     await expect(title).toContainText("Zaloguj się");
   });
 });
-

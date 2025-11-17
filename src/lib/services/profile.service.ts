@@ -7,7 +7,7 @@ import type {
   ToolSummaryDTO,
 } from "../../types.ts";
 import type { Database, Json } from "../../db/database.types.ts";
-import { geocodeLocation, getDefaultLocation, getDefaultPostalCode, getDefaultCoordinates } from "./geocoding.service.ts";
+import { getDefaultPostalCode, getDefaultCoordinates } from "./geocoding.service.ts";
 import { getToolImagePublicUrl } from "../utils.ts";
 
 const NOT_FOUND_ERROR_CODE = "PGRST116";
@@ -134,28 +134,22 @@ export class UsernameTakenError extends Error {
  * Automatycznie ustawia domyślne wartości geolokalizacji dla użytkownika, jeśli ich nie ma.
  * Wywoływane automatycznie przy logowaniu lub odczycie profilu.
  */
-export async function ensureDefaultLocationIfMissing(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<void> {
+export async function ensureDefaultLocationIfMissing(supabase: SupabaseClient, userId: string): Promise<void> {
   const profile = await fetchProfileById(supabase, userId);
   if (!profile) {
     return; // Profil nie istnieje, nie robimy nic
   }
-  
+
   // Jeśli użytkownik nie ma geolokalizacji, ustaw domyślne wartości
   if (!profile.location_geog) {
     const defaultPostalCode = getDefaultPostalCode();
     const defaultCoords = getDefaultCoordinates();
-    
+
     // Ustawiamy location_text jeśli nie ma
     if (!profile.location_text) {
-      await supabase
-        .from("profiles")
-        .update({ location_text: defaultPostalCode })
-        .eq("id", userId);
+      await supabase.from("profiles").update({ location_text: defaultPostalCode }).eq("id", userId);
     }
-    
+
     // Ustawiamy location_geog używając funkcji RPC
     await supabase.rpc("set_profile_location_geog", {
       p_user_id: userId,
@@ -196,7 +190,7 @@ export async function upsertOwnProfile(
     // Dla nowych użytkowników używamy domyślnych wartości zamiast geokodowania
     const defaultPostalCode = getDefaultPostalCode();
     const defaultCoords = getDefaultCoordinates();
-    
+
     const insertRow: Database["public"]["Tables"]["profiles"]["Insert"] = {
       id: userId,
       username: normalizedUsername,
@@ -204,8 +198,8 @@ export async function upsertOwnProfile(
       location_text: normalizedLocation ?? defaultPostalCode,
       // location_geog zostanie ustawione przez funkcję RPC poniżej
     };
-    
-    const { data, error } = await supabase.from("profiles").insert(insertRow).select("*").single();
+
+    const { error } = await supabase.from("profiles").insert(insertRow).select("*").single();
     if (error) {
       // Map unique violation to conflict
       if (error.code === "23505") {
@@ -213,26 +207,26 @@ export async function upsertOwnProfile(
       }
       throw new SupabaseQueryError("Failed to create profile.", error.code, error);
     }
-    
+
     // Ustawiamy domyślną geolokalizację używając funkcji RPC z PostGIS
     const { error: rpcError } = await supabase.rpc("set_profile_location_geog", {
       p_user_id: userId,
       p_lon: defaultCoords.lon,
       p_lat: defaultCoords.lat,
     });
-    
+
     if (rpcError) {
       throw new SupabaseQueryError("Failed to set default location.", rpcError.code, rpcError);
     }
-    
+
     geocodeTriggered = true; // Oznaczamy że ustawiliśmy geolokalizację (domyślną)
-    
+
     // Pobieramy zaktualizowany profil z geolokalizacją
     const updatedProfile = await fetchProfileById(supabase, userId);
     if (!updatedProfile) {
       throw new SupabaseQueryError("Failed to fetch updated profile.", undefined, undefined);
     }
-    
+
     return { profile: updatedProfile, created: true, geocodeTriggered };
   }
 
@@ -243,15 +237,14 @@ export async function upsertOwnProfile(
   if (current.rodo_consent !== cmd.rodo_consent) {
     updates.rodo_consent = cmd.rodo_consent;
   }
-  
+
   // Sprawdź czy użytkownik nie ma ustawionej geolokalizacji - jeśli nie, ustaw domyślne wartości
   const hasNoLocation = !current.location_geog;
   const locationChanged = hasLocationChanged(current.location_text, normalizedLocation);
-  
+
   if (hasNoLocation || locationChanged) {
     const defaultPostalCode = getDefaultPostalCode();
-    const defaultCoords = getDefaultCoordinates();
-    
+
     // Jeśli użytkownik nie ma geolokalizacji, ustaw domyślne wartości
     if (hasNoLocation) {
       // Jeśli użytkownik nie ma location_text, ustaw domyślny kod pocztowy
@@ -264,34 +257,34 @@ export async function upsertOwnProfile(
       updates.location_text = normalizedLocation ?? defaultPostalCode;
       geocodeTriggered = true;
     }
-    
+
     // Ustawiamy domyślną geolokalizację używając funkcji RPC z PostGIS (poza updates, bo to osobne zapytanie)
     // Zrobimy to po update, jeśli są jakieś updates
   }
 
   // Jeśli są updates, wykonaj update
   if (Object.keys(updates).length > 0) {
-    const { data, error } = await supabase.from("profiles").update(updates).eq("id", userId).select("*").single();
+    const { error } = await supabase.from("profiles").update(updates).eq("id", userId).select("*").single();
     if (error) {
       if (error.code === "23505") {
         throw new UsernameTakenError();
       }
       throw new SupabaseQueryError("Failed to update profile.", error.code, error);
     }
-    
+
     // Jeśli ustawiamy geolokalizację, użyj funkcji RPC
     if (geocodeTriggered) {
-      const defaultCoords = getDefaultCoordinates();
+      const defaultCoordsForRpc = getDefaultCoordinates();
       const { error: rpcError } = await supabase.rpc("set_profile_location_geog", {
         p_user_id: userId,
-        p_lon: defaultCoords.lon,
-        p_lat: defaultCoords.lat,
+        p_lon: defaultCoordsForRpc.lon,
+        p_lat: defaultCoordsForRpc.lat,
       });
-      
+
       if (rpcError) {
         throw new SupabaseQueryError("Failed to set default location.", rpcError.code, rpcError);
       }
-      
+
       // Pobieramy zaktualizowany profil z geolokalizacją
       const updatedProfile = await fetchProfileById(supabase, userId);
       if (!updatedProfile) {
@@ -299,23 +292,23 @@ export async function upsertOwnProfile(
       }
       return { profile: updatedProfile, created: false, geocodeTriggered };
     }
-    
-    return { profile: data as ProfileDTO, created: false, geocodeTriggered };
+
+    return { profile: current, created: false, geocodeTriggered };
   }
-  
+
   // Jeśli nie ma updates, ale ustawiamy geolokalizację (hasNoLocation)
   if (geocodeTriggered && hasNoLocation) {
-    const defaultCoords = getDefaultCoordinates();
+    const defaultCoordsForRpc = getDefaultCoordinates();
     const { error: rpcError } = await supabase.rpc("set_profile_location_geog", {
       p_user_id: userId,
-      p_lon: defaultCoords.lon,
-      p_lat: defaultCoords.lat,
+      p_lon: defaultCoordsForRpc.lon,
+      p_lat: defaultCoordsForRpc.lat,
     });
-    
+
     if (rpcError) {
       throw new SupabaseQueryError("Failed to set default location.", rpcError.code, rpcError);
     }
-    
+
     // Pobieramy zaktualizowany profil z geolokalizacją
     const updatedProfile = await fetchProfileById(supabase, userId);
     if (!updatedProfile) {
@@ -323,7 +316,7 @@ export async function upsertOwnProfile(
     }
     return { profile: updatedProfile, created: false, geocodeTriggered };
   }
-  
+
   return { profile: current, created: false, geocodeTriggered };
 }
 

@@ -29,5 +29,3 @@ export interface ToolFormViewModel {
   status: "idle" | "creating_draft" | "saving" | "publishing" | "error" | "success";
   errorMessage: string | null;
 }
-
-

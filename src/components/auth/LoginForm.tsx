@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
     });
@@ -26,10 +26,10 @@ export function LoginForm() {
     setLoading(false);
 
     if (response.ok) {
-      window.location.href = '/';
+      window.location.href = "/";
     } else {
       const data = await response.json();
-      setError(data.error || 'Logowanie nie powiodło się');
+      setError(data.error || "Logowanie nie powiodło się");
     }
   };
 
@@ -66,7 +66,7 @@ export function LoginForm() {
           </div>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           <Button type="submit" className="w-full mt-4" disabled={loading}>
-            {loading ? 'Logowanie...' : 'Zaloguj się'}
+            {loading ? "Logowanie..." : "Zaloguj się"}
           </Button>
         </form>
       </CardContent>

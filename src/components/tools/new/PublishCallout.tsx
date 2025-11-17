@@ -29,7 +29,9 @@ export function PublishCallout({
       <ListChecks className="h-4 w-4" />
       <AlertTitle>Gotowy do publikacji?</AlertTitle>
       <AlertDescription className="space-y-3">
-        <p className="text-sm text-muted-foreground">Aby zapisać szkic lub opublikować narzędzie, musisz spełnić poniższe warunki:</p>
+        <p className="text-sm text-muted-foreground">
+          Aby zapisać szkic lub opublikować narzędzie, musisz spełnić poniższe warunki:
+        </p>
         <ul className="text-sm text-muted-foreground list-inside">
           <li className={conditions.hasName ? "text-green-600" : ""}>✓ Podaj nazwę narzędzia</li>
           <li className={conditions.hasPrice ? "text-green-600" : ""}>✓ Ustaw poprawną cenę (1-5)</li>

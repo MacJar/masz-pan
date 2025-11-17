@@ -100,8 +100,7 @@ export const useMyToolsManager = () => {
       );
       try {
         await updateTool(toolId, { status: newStatus });
-      } catch (error) {
-        console.error("Failed to update tool status:", error);
+      } catch {
         // Revert optimistic update on error
         setTools(previousTools);
         // TODO: Show toast notification with error
