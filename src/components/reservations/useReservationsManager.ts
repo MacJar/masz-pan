@@ -10,13 +10,10 @@ import { getProfile } from "@/lib/api/profile.client";
 import type { ProfileDTO, ReservationWithToolDTO, ReservationStatus } from "@/types";
 import { toast } from "sonner";
 
-// Mock current user ID, in a real app this would come from an auth context
-const MOCK_USER_ID = "00000000-0000-0000-0000-000000000001"; // Replace with actual user ID mechanism
-
-type ReservationsState = {
+interface ReservationsState {
   borrower: ReservationViewModel[];
   owner: ReservationViewModel[];
-};
+}
 
 const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): ReservationViewModel => {
   const currentUserRole = dto.owner_id === currentUserId ? "owner" : "borrower";
@@ -60,8 +57,8 @@ const mapDtoToViewModel = (dto: ReservationWithToolDTO, currentUserId: string): 
     currentUserRole,
     counterparty: counterparty ?? { id: "unknown", username: "Nieznany" },
     availableActions,
-    currentUserRating: (dto as any).currentUserRating ?? null,
-    counterpartyRating: (dto as any).counterpartyRating ?? null,
+    currentUserRating: (dto as { currentUserRating?: number | null }).currentUserRating ?? null,
+    counterpartyRating: (dto as { counterpartyRating?: number | null }).counterpartyRating ?? null,
   };
 };
 
@@ -91,8 +88,8 @@ export const useReservationsManager = () => {
     setError(null);
     try {
       const data = await getMyReservations({ role });
-      const viewModels = data.map(dto => mapDtoToViewModel(dto, userId));
-      setReservations(prev => ({ ...prev, [role]: viewModels }));
+      const viewModels = data.map((dto) => mapDtoToViewModel(dto, userId));
+      setReservations((prev) => ({ ...prev, [role]: viewModels }));
     } catch (err) {
       setError(err instanceof Error ? err : new Error("An unknown error occurred"));
     } finally {
@@ -111,9 +108,9 @@ export const useReservationsManager = () => {
     role: "owner" | "borrower",
     updatedData: Partial<ReservationViewModel>
   ) => {
-    setReservations(prev => {
+    setReservations((prev) => {
       const list = prev[role];
-      const index = list.findIndex(r => r.id === reservationId);
+      const index = list.findIndex((r) => r.id === reservationId);
       if (index === -1) return prev;
 
       const newList = [...list];
@@ -129,12 +126,16 @@ export const useReservationsManager = () => {
   ) => {
     const role = activeTab;
     const originalReservations = [...reservations[role]];
-    const reservationToUpdate = originalReservations.find(r => r.id === id);
+    const reservationToUpdate = originalReservations.find((r) => r.id === id);
     if (!reservationToUpdate || !currentUser) return;
 
     // Optimistic update
     const updatedViewModel = mapDtoToViewModel(
-      { ...reservationToUpdate, status: newStatus, agreed_price_tokens: payload?.price_tokens ?? reservationToUpdate.agreed_price_tokens },
+      {
+        ...reservationToUpdate,
+        status: newStatus,
+        agreed_price_tokens: payload?.price_tokens ?? reservationToUpdate.agreed_price_tokens,
+      },
       currentUser.id
     );
     updateReservationState(id, role, updatedViewModel);
@@ -145,7 +146,7 @@ export const useReservationsManager = () => {
       toast.success(`Status rezerwacji został pomyślnie zmieniony na "${getStepLabel(newStatus)}".`);
     } catch (error) {
       // Revert state
-      setReservations(prev => ({ ...prev, [role]: originalReservations }));
+      setReservations((prev) => ({ ...prev, [role]: originalReservations }));
       toast.error((error as Error).message || "Wystąpił błąd podczas zmiany statusu.");
     }
   };
@@ -153,7 +154,7 @@ export const useReservationsManager = () => {
   const cancelReservation = async (id: string, reason: string) => {
     const role = activeTab;
     const originalReservations = [...reservations[role]];
-    const reservationToUpdate = originalReservations.find(r => r.id === id);
+    const reservationToUpdate = originalReservations.find((r) => r.id === id);
     if (!reservationToUpdate || !currentUser) return;
 
     const newStatus = "cancelled";
@@ -167,9 +168,9 @@ export const useReservationsManager = () => {
       await cancelReservationRequest(id, reason);
       toast.success("Rezerwacja została pomyślnie anulowana.");
     } catch (error) {
-       // Revert state
-       setReservations(prev => ({ ...prev, [role]: originalReservations }));
-       toast.error((error as Error).message || "Wystąpił błąd podczas anulowania rezerwacji.");
+      // Revert state
+      setReservations((prev) => ({ ...prev, [role]: originalReservations }));
+      toast.error((error as Error).message || "Wystąpił błąd podczas anulowania rezerwacji.");
     }
   };
 
@@ -183,7 +184,7 @@ export const useReservationsManager = () => {
   const rateReservation = async (id: string, rating: number) => {
     const role = activeTab;
     const originalReservations = [...reservations[role]];
-    const reservationToUpdate = originalReservations.find(r => r.id === id);
+    const reservationToUpdate = originalReservations.find((r) => r.id === id);
     if (!reservationToUpdate || !currentUser) return;
 
     // Optimistic update
@@ -195,7 +196,7 @@ export const useReservationsManager = () => {
       toast.success("Dziękujemy za wystawienie oceny!");
     } catch (error) {
       // Revert state
-      setReservations(prev => ({ ...prev, [role]: originalReservations }));
+      setReservations((prev) => ({ ...prev, [role]: originalReservations }));
       toast.error((error as Error).message || "Wystąpił błąd podczas wysyłania oceny.");
     }
   };

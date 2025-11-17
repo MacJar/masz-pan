@@ -3,7 +3,7 @@ import { getContactsForReservation } from "@/lib/api/reservations.client";
 import type { ReservationContactsDto } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 interface ContactDetailsProps {
   reservationId: string;
@@ -12,16 +12,14 @@ interface ContactDetailsProps {
 const ContactDetails: React.FC<ContactDetailsProps> = ({ reservationId }) => {
   const [contacts, setContacts] = useState<ReservationContactsDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFetchContacts = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const data = await getContactsForReservation(reservationId);
       setContacts(data);
-    } catch (err) {
-      setError("Nie udało się pobrać danych kontaktowych.");
+    } catch {
+      // Ignore errors - user can try again
     } finally {
       setIsLoading(false);
     }

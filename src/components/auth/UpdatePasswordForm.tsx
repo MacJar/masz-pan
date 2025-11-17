@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function UpdatePasswordForm() {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     setLoading(true);
 
-    const response = await fetch('/api/auth/update-password', {
-      method: 'POST',
+    const response = await fetch("/api/auth/update-password", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ password }),
     });
@@ -28,13 +28,13 @@ export function UpdatePasswordForm() {
     setLoading(false);
 
     if (response.ok) {
-      setMessage('Twoje hasło zostało pomyślnie zaktualizowane. Zostaniesz przekierowany na stronę główną.');
+      setMessage("Twoje hasło zostało pomyślnie zaktualizowane. Zostaniesz przekierowany na stronę główną.");
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = "/";
       }, 3000);
     } else {
       const data = await response.json();
-      setError(data.error || 'Nie udało się zaktualizować hasła. Link mógł wygasnąć.');
+      setError(data.error || "Nie udało się zaktualizować hasła. Link mógł wygasnąć.");
     }
   };
 
@@ -42,9 +42,7 @@ export function UpdatePasswordForm() {
     <Card className="w-[350px]">
       <CardHeader>
         <CardTitle className="text-2xl">Ustaw nowe hasło</CardTitle>
-        <CardDescription>
-          Wprowadź swoje nowe hasło poniżej.
-        </CardDescription>
+        <CardDescription>Wprowadź swoje nowe hasło poniżej.</CardDescription>
       </CardHeader>
       <CardContent>
         {message ? (
@@ -69,16 +67,16 @@ export function UpdatePasswordForm() {
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <Button type="submit" className="w-full mt-4" disabled={loading}>
-              {loading ? 'Aktualizowanie...' : 'Zaktualizuj hasło'}
+              {loading ? "Aktualizowanie..." : "Zaktualizuj hasło"}
             </Button>
           </form>
         )}
       </CardContent>
-      { !message && (
+      {!message && (
         <CardFooter>
-            <a href="/auth/login" className="text-sm underline">
+          <a href="/auth/login" className="text-sm underline">
             Wróć do logowania
-            </a>
+          </a>
         </CardFooter>
       )}
     </Card>

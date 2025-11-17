@@ -1,28 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import { getBalance, getLedger, getBonusState, claimSignupBonus, claimListingBonus, claimRescueBonus } from '@/lib/api/tokens.client';
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import {
+  getBalance,
+  getLedger,
+  getBonusState,
+  claimSignupBonus,
+  claimListingBonus,
+  claimRescueBonus,
+} from "@/lib/api/tokens.client";
 import type {
   TokenBalanceDto,
   TokenLedgerEntryDto,
   TokenLedgerEntryViewModel,
   TokenLedgerKind,
   BonusStateViewModel,
-} from '@/types';
+} from "@/types";
 
 const formatLedgerDescription = (entry: TokenLedgerEntryDto): string => {
   const details = entry.details ?? {};
 
-  if (entry.kind === 'award') {
+  if (entry.kind === "award") {
     const awardType = details.award;
     switch (awardType) {
-      case 'signup_bonus':
-        return 'Bonus powitalny';
-      case 'listing_bonus':
-        return 'Bonus za wystawienie narzędzia';
-      case 'rescue_claim':
-        return 'Bonus ratunkowy';
+      case "signup_bonus":
+        return "Bonus powitalny";
+      case "listing_bonus":
+        return "Bonus za wystawienie narzędzia";
+      case "rescue_claim":
+        return "Bonus ratunkowy";
       default:
-        return 'Bonus żetonów';
+        return "Bonus żetonów";
     }
   }
 
@@ -37,16 +44,16 @@ const formatLedgerDescription = (entry: TokenLedgerEntryDto): string => {
   return `Transakcja typu ${entry.kind}`;
 };
 
-const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
+const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
+  dateStyle: "medium",
+  timeStyle: "short",
 });
 
 const transformLedgerEntry = (entry: TokenLedgerEntryDto): TokenLedgerEntryViewModel => {
-  let formattedDate = '—';
+  let formattedDate = "—";
   if (entry.created_at) {
     const parsed = new Date(entry.created_at);
-    formattedDate = Number.isNaN(parsed.valueOf()) ? '—' : dateFormatter.format(parsed);
+    formattedDate = Number.isNaN(parsed.valueOf()) ? "—" : dateFormatter.format(parsed);
   }
 
   return {
@@ -56,12 +63,7 @@ const transformLedgerEntry = (entry: TokenLedgerEntryDto): TokenLedgerEntryViewM
   };
 };
 
-type ActionFeedback =
-  | {
-      type: 'success' | 'error';
-      message: string;
-    }
-  | null;
+type ActionFeedback = { type: "success" | "error"; message: string } | null;
 
 export const useTokensView = () => {
   const [balance, setBalance] = useState<TokenBalanceDto | null>(null);
@@ -93,7 +95,7 @@ export const useTokensView = () => {
       const balanceData = await getBalance();
       setBalance(balanceData);
     } catch (err) {
-      handleError(err, 'Nie udało się pobrać salda');
+      handleError(err, "Nie udało się pobrać salda");
     } finally {
       setIsLoading((prev) => ({ ...prev, balance: false }));
     }
@@ -112,14 +114,14 @@ export const useTokensView = () => {
         setLedgerCursor(nextCursor);
         setHasMore(!!nextCursor);
       } catch (err) {
-        handleError(err, 'Nie udało się pobrać historii transakcji');
+        handleError(err, "Nie udało się pobrać historii transakcji");
       } finally {
         setIsLoading((prev) => ({ ...prev, ledger: false }));
       }
     },
     [ledgerFilter, hasMore, ledgerCursor]
   );
-  
+
   const fetchBonusState = useCallback(async () => {
     setIsLoading((prev) => ({ ...prev, bonusState: true }));
     setError(null);
@@ -127,25 +129,24 @@ export const useTokensView = () => {
       const state = await getBonusState();
       setBonusState(state);
     } catch (err) {
-      handleError(err, 'Nie udało się pobrać stanu bonusów');
+      handleError(err, "Nie udało się pobrać stanu bonusów");
     } finally {
       setIsLoading((prev) => ({ ...prev, bonusState: false }));
     }
   }, []);
 
-
   useEffect(() => {
     fetchBalance();
     fetchLedger(ledgerFilter, true);
     fetchBonusState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   const refreshData = () => {
     fetchBalance();
     fetchLedger(ledgerFilter, true);
     fetchBonusState();
   };
-
 
   const loadMoreLedgerEntries = useCallback(async () => {
     if (!ledgerCursor || !hasMore || isLoading.ledger) return;
@@ -153,7 +154,7 @@ export const useTokensView = () => {
   }, [ledgerCursor, hasMore, isLoading.ledger, fetchLedger, ledgerFilter]);
 
   const handleFilterChange = (newFilter: TokenLedgerKind | null) => {
-    const filter = newFilter === 'all' ? null : newFilter;
+    const filter = newFilter === "all" ? null : newFilter;
     setLedgerFilter(filter);
     setLedgerCursor(null);
     setHasMore(true);
@@ -163,7 +164,7 @@ export const useTokensView = () => {
   const clearActionFeedback = () => setActionFeedback(null);
 
   const handleClaimSignupBonus = async () => {
-    const fallbackMessage = 'Nie udało się odebrać bonusu powitalnego.';
+    const fallbackMessage = "Nie udało się odebrać bonusu powitalnego.";
     setActionFeedback(null);
     setBonusState((prev) =>
       prev
@@ -171,7 +172,7 @@ export const useTokensView = () => {
             ...prev,
             signup: { ...prev.signup, isLoading: true },
           }
-        : prev,
+        : prev
     );
     try {
       const result = await claimSignupBonus();
@@ -183,30 +184,30 @@ export const useTokensView = () => {
               ...prev,
               signup: { isClaimed: true, isLoading: false },
             }
-          : prev,
+          : prev
       );
       setActionFeedback({
-        type: 'success',
+        type: "success",
         message: `Przyznano ${amount} żetonów bonusu powitalnego.`,
       });
       refreshData();
     } catch (err) {
       const message = err instanceof Error ? err.message : fallbackMessage;
-      setActionFeedback({ type: 'error', message });
+      setActionFeedback({ type: "error", message });
       setBonusState((prev) =>
         prev
           ? {
               ...prev,
               signup: { ...prev.signup, isLoading: false },
             }
-          : prev,
+          : prev
       );
       handleError(err, fallbackMessage);
     }
   };
 
   const handleClaimListingBonus = async (toolId: string) => {
-    const fallbackMessage = 'Nie udało się odebrać bonusu za wystawienie.';
+    const fallbackMessage = "Nie udało się odebrać bonusu za wystawienie.";
     setActionFeedback(null);
     setBonusState((prev) =>
       prev
@@ -214,7 +215,7 @@ export const useTokensView = () => {
             ...prev,
             listing: { ...prev.listing, isLoading: true },
           }
-        : prev,
+        : prev
     );
     try {
       const result = await claimListingBonus(toolId);
@@ -230,30 +231,30 @@ export const useTokensView = () => {
                 claimsUsed: result?.count_used ?? prev.listing.claimsUsed,
               },
             }
-          : prev,
+          : prev
       );
       setActionFeedback({
-        type: 'success',
+        type: "success",
         message: `Przyznano ${amount} żetonów za wystawienie narzędzia.`,
       });
       refreshData();
     } catch (err) {
       const message = err instanceof Error ? err.message : fallbackMessage;
-      setActionFeedback({ type: 'error', message });
+      setActionFeedback({ type: "error", message });
       setBonusState((prev) =>
         prev
           ? {
               ...prev,
               listing: { ...prev.listing, isLoading: false },
             }
-          : prev,
+          : prev
       );
       handleError(err, fallbackMessage);
     }
   };
 
   const handleClaimRescueBonus = async () => {
-    const fallbackMessage = 'Nie udało się odebrać bonusu ratunkowego.';
+    const fallbackMessage = "Nie udało się odebrać bonusu ratunkowego.";
     setActionFeedback(null);
     setBonusState((prev) =>
       prev
@@ -261,7 +262,7 @@ export const useTokensView = () => {
             ...prev,
             rescue: { ...prev.rescue, isLoading: true },
           }
-        : prev,
+        : prev
     );
     try {
       const result = await claimRescueBonus();
@@ -278,28 +279,27 @@ export const useTokensView = () => {
                 isAvailable: false,
               },
             }
-          : prev,
+          : prev
       );
       setActionFeedback({
-        type: 'success',
+        type: "success",
         message: `Przyznano ${amount} żeton ratunkowy.`,
       });
       refreshData();
     } catch (err) {
       const message = err instanceof Error ? err.message : fallbackMessage;
-      setActionFeedback({ type: 'error', message });
+      setActionFeedback({ type: "error", message });
       setBonusState((prev) =>
         prev
           ? {
               ...prev,
               rescue: { ...prev.rescue, isLoading: false },
             }
-          : prev,
+          : prev
       );
       handleError(err, fallbackMessage);
     }
   };
-
 
   return {
     balance,

@@ -19,9 +19,5 @@ export default function InfiniteScrollSentinel(props: InfiniteScrollSentinelProp
     )
   );
 
-  return <div ref={ref as unknown as React.RefObject<HTMLDivElement> as any} className="h-6 w-full" />;
+  return <div ref={ref as React.RefObject<HTMLDivElement>} className="h-6 w-full" />;
 }
-
-
-
-

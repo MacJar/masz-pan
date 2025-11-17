@@ -9,10 +9,7 @@ interface LocationStatusProps {
   status: GeocodingStatus;
 }
 
-const statusConfig: Record<
-  GeocodingStatus,
-  { Icon: React.ElementType; color: string; text: string }
-> = {
+const statusConfig: Record<GeocodingStatus, { Icon: React.ElementType; color: string; text: string }> = {
   NOT_SET: {
     Icon: HelpCircle,
     color: "text-muted-foreground",

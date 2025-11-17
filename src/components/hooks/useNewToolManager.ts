@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback } from "react";
+import { useReducer, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import imageCompression from "browser-image-compression";
 import type { ToolFormViewModel, ImageUploadState } from "@/components/tools/new/NewTool.types";
@@ -11,7 +11,6 @@ import {
   updateDraftTool,
   publishTool,
 } from "@/lib/api/tools.client";
-import { useDebouncedValue } from "./useDebouncedValue";
 import type { UpdateToolCommand } from "@/types";
 import { toast } from "sonner";
 
@@ -21,9 +20,12 @@ type Action =
   | { type: "CREATE_DRAFT_START" }
   | { type: "CREATE_DRAFT_SUCCESS"; payload: { toolId: string } }
   | { type: "CREATE_DRAFT_ERROR"; payload: { error: string } }
-  | { type: "FORM_CHANGE"; payload: { field: string; value: any } }
+  | { type: "FORM_CHANGE"; payload: { field: string; value: string | number } }
   | { type: "IMAGE_ADD_START"; payload: { file: File; tempId: string } }
-  | { type: "IMAGE_UPLOAD_PROGRESS"; payload: { tempId: string; status: ImageUploadState["status"]; progress?: number } }
+  | {
+      type: "IMAGE_UPLOAD_PROGRESS";
+      payload: { tempId: string; status: ImageUploadState["status"]; progress?: number };
+    }
   | { type: "IMAGE_UPLOAD_SUCCESS"; payload: { tempId: string; databaseId: string; storage_key: string } }
   | { type: "IMAGE_UPLOAD_ERROR"; payload: { tempId: string; error: string } }
   | { type: "IMAGE_REMOVE_START"; payload: { tempId: string } }
@@ -56,7 +58,7 @@ function reducer(state: NewToolState, action: Action): NewToolState {
       return { ...state, status: "error", errorMessage: action.payload.error };
     case "FORM_CHANGE":
       return { ...state, status: "idle", [action.payload.field]: action.payload.value };
-    case "IMAGE_ADD_START":
+    case "IMAGE_ADD_START": {
       const newImage: ImageUploadState = {
         id: action.payload.tempId,
         file: action.payload.file,
@@ -64,13 +66,18 @@ function reducer(state: NewToolState, action: Action): NewToolState {
         progressPercent: 0,
       };
       return { ...state, images: [...state.images, newImage] };
+    }
     case "IMAGE_UPLOAD_PROGRESS":
       return {
         ...state,
         images: state.images.map((img) =>
           img.id === action.payload.tempId
-            ? { ...img, status: action.payload.status, progressPercent: action.payload.progress ?? img.progressPercent }
-            : img,
+            ? {
+                ...img,
+                status: action.payload.status,
+                progressPercent: action.payload.progress ?? img.progressPercent,
+              }
+            : img
         ),
       };
     case "IMAGE_UPLOAD_SUCCESS":
@@ -85,16 +92,14 @@ function reducer(state: NewToolState, action: Action): NewToolState {
                 databaseId: action.payload.databaseId,
                 storage_key: action.payload.storage_key,
               }
-            : img,
+            : img
         ),
       };
     case "IMAGE_UPLOAD_ERROR":
       return {
         ...state,
         images: state.images.map((img) =>
-          img.id === action.payload.tempId
-            ? { ...img, status: "error", errorMessage: action.payload.error }
-            : img,
+          img.id === action.payload.tempId ? { ...img, status: "error", errorMessage: action.payload.error } : img
         ),
       };
     case "IMAGE_REMOVE_SUCCESS":
@@ -109,8 +114,7 @@ function reducer(state: NewToolState, action: Action): NewToolState {
     case "SAVE_DRAFT_SUCCESS":
       return { ...state, status: "idle" };
     case "SAVE_DRAFT_ERROR":
-      // Non-blocking error
-      console.error("Save draft error:", action.payload.error);
+      // Non-blocking error - error is handled via toast in the handler
       return { ...state, status: "idle" }; // Revert to idle
     case "PUBLISH_START":
       return { ...state, status: "publishing", errorMessage: null };
@@ -126,29 +130,9 @@ function reducer(state: NewToolState, action: Action): NewToolState {
 export function useNewToolManager() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const handleFormChange = (field: string, value: any) => {
+  const handleFormChange = (field: string, value: string | number) => {
     dispatch({ type: "FORM_CHANGE", payload: { field, value } });
   };
-
-  const handleImageAdd = useCallback(
-    async (file: File) => {
-      if (!state.toolId) {
-        // If toolId doesn't exist, create draft first
-        try {
-          dispatch({ type: "CREATE_DRAFT_START" });
-          const draftTool = await createDraftTool({ name: state.name, description: state.description, suggested_price_tokens: state.suggested_price_tokens });
-          dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId: draftTool.id } });
-          uploadImage(file, draftTool.id);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : "An unknown error occurred";
-          dispatch({ type: "CREATE_DRAFT_ERROR", payload: { error: message } });
-        }
-      } else {
-        uploadImage(file, state.toolId);
-      }
-    },
-    [state.toolId, state.name, state.description, state.suggested_price_tokens],
-  );
 
   const uploadImage = useCallback(
     async (file: File, toolId: string) => {
@@ -180,7 +164,7 @@ export function useNewToolManager() {
         dispatch({ type: "IMAGE_UPLOAD_PROGRESS", payload: { tempId, status: "saving" } });
         const savedImage = await saveToolImage(toolId, {
           storage_key,
-          position: state.images.filter(img => img.status === 'completed').length,
+          position: state.images.filter((img) => img.status === "completed").length,
         });
 
         dispatch({
@@ -192,7 +176,31 @@ export function useNewToolManager() {
         dispatch({ type: "IMAGE_UPLOAD_ERROR", payload: { tempId, error: message } });
       }
     },
-    [state.images.length],
+    [state.images]
+  );
+
+  const handleImageAdd = useCallback(
+    async (file: File) => {
+      if (!state.toolId) {
+        // If toolId doesn't exist, create draft first
+        try {
+          dispatch({ type: "CREATE_DRAFT_START" });
+          const draftTool = await createDraftTool({
+            name: state.name,
+            description: state.description,
+            suggested_price_tokens: state.suggested_price_tokens,
+          });
+          dispatch({ type: "CREATE_DRAFT_SUCCESS", payload: { toolId: draftTool.id } });
+          uploadImage(file, draftTool.id);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "An unknown error occurred";
+          dispatch({ type: "CREATE_DRAFT_ERROR", payload: { error: message } });
+        }
+      } else {
+        uploadImage(file, state.toolId);
+      }
+    },
+    [state.toolId, state.name, state.description, state.suggested_price_tokens, uploadImage]
   );
 
   const handleImageRemove = useCallback(
@@ -213,7 +221,7 @@ export function useNewToolManager() {
         dispatch({ type: "IMAGE_REMOVE_ERROR", payload: { tempId, error: message } });
       }
     },
-    [state.toolId, state.images],
+    [state.toolId, state.images]
   );
 
   const canPublish =
@@ -273,7 +281,11 @@ export function useNewToolManager() {
 
       const publishedTool = await publishTool(toolId);
       dispatch({ type: "PUBLISH_SUCCESS" });
-      window.location.href = `/tools/${publishedTool.id}`;
+      // Navigate to the published tool page
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line react-compiler/react-compiler
+        window.location.href = `/tools/${publishedTool.id}`;
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unknown error occurred";
       dispatch({ type: "PUBLISH_ERROR", payload: { error: message } });

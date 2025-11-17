@@ -50,11 +50,11 @@ export function UpdatePasswordDialog({ isOpen, onClose }: UpdatePasswordDialogPr
       setError(data.error || "Wystąpił błąd podczas zmiany hasła.");
     }
   };
-  
+
   const handleClose = () => {
-    setPassword('');
-    setConfirmPassword('');
-    setError('');
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
     onClose();
   };
 
@@ -104,4 +104,3 @@ export function UpdatePasswordDialog({ isOpen, onClose }: UpdatePasswordDialogPr
     </Dialog>
   );
 }
-

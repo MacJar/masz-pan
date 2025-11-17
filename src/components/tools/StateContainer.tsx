@@ -10,7 +10,3 @@ export interface StateContainerProps {
 export default function StateContainer(props: StateContainerProps): JSX.Element {
   return <>{props.children}</>;
 }
-
-
-
-

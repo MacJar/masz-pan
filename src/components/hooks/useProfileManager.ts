@@ -15,7 +15,7 @@ export function useProfileManager() {
     try {
       const userProfile = await getProfile();
       setProfile(userProfile);
-    } catch (err) {
+    } catch {
       setError("Nie udało się załadować profilu. Spróbuj odświeżyć stronę.");
     } finally {
       setIsLoading(false);
@@ -66,5 +66,3 @@ export function useProfileManager() {
     setFieldErrors, // Allow clearing field errors from the form component
   };
 }
-
-

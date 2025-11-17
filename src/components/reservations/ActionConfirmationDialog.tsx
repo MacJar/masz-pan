@@ -47,11 +47,11 @@ const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
       }
       onConfirm({ price_tokens: price });
     } else if (requiresReason) {
-        if (!reason.trim()) {
-            setError("Powód jest wymagany.");
-            return;
-        }
-        onConfirm({ reason: reason });
+      if (!reason.trim()) {
+        setError("Powód jest wymagany.");
+        return;
+      }
+      onConfirm({ reason: reason });
     } else {
       onConfirm();
     }
@@ -61,13 +61,13 @@ const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
   const handleClose = () => {
     resetState();
     onClose();
-  }
+  };
 
   const resetState = () => {
     setPrice(undefined);
     setReason("");
     setError("");
-  }
+  };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleClose}>
@@ -76,7 +76,7 @@ const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         {action.type === "accept" && action.requiresPrice && (
           <div className="grid gap-2 py-4">
             <Label htmlFor="price">Cena w żetonach</Label>
@@ -92,10 +92,15 @@ const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
         )}
 
         {requiresReason && (
-            <div className="grid gap-2 py-4">
-                <Label htmlFor="reason">Powód (opcjonalnie dla anulowania)</Label>
-                <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Podaj powód..."/>
-            </div>
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="reason">Powód (opcjonalnie dla anulowania)</Label>
+            <Textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Podaj powód..."
+            />
+          </div>
         )}
 
         {error && <p className="text-sm text-red-500">{error}</p>}

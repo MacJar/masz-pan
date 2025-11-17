@@ -1,10 +1,10 @@
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { LedgerEntryItem } from './LedgerEntryItem';
-import type { TokenLedgerEntryViewModel, LedgerKind } from './tokens.types';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { LedgerEntryItem } from "./LedgerEntryItem";
+import type { TokenLedgerEntryViewModel, LedgerKind } from "./tokens.types";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { AlertCircle } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 interface Props {
   entries: TokenLedgerEntryViewModel[];
@@ -15,12 +15,12 @@ interface Props {
 }
 
 const ledgerKindOptions: { value: LedgerKind; label: string }[] = [
-    { value: 'credit', label: 'Wpływy' },
-    { value: 'debit', label: 'Obciążenia' },
-    { value: 'hold', label: 'Blokady' },
-    { value: 'release', label: 'Zwolnienia' },
-    { value: 'transfer', label: 'Transfery' },
-    { value: 'award', label: 'Bonusy' },
+  { value: "credit", label: "Wpływy" },
+  { value: "debit", label: "Obciążenia" },
+  { value: "hold", label: "Blokady" },
+  { value: "release", label: "Zwolnienia" },
+  { value: "transfer", label: "Transfery" },
+  { value: "award", label: "Bonusy" },
 ];
 
 const SkeletonLoader = () => (
@@ -43,22 +43,22 @@ const SkeletonLoader = () => (
 export const LedgerList = ({ entries, hasMore, isLoading, onFilterChange, onLoadMore }: Props) => {
   return (
     <div>
-        <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Historia transakcji</h2>
-            <Select onValueChange={(value) => onFilterChange(value as LedgerKind | null)}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtruj po typie" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">Wszystkie</SelectItem>
-                    {ledgerKindOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Historia transakcji</h2>
+        <Select onValueChange={(value) => onFilterChange(value as LedgerKind | null)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtruj po typie" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Wszystkie</SelectItem>
+            {ledgerKindOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="border rounded-md">
         {isLoading && entries.length === 0 ? (
           <SkeletonLoader />
@@ -75,7 +75,7 @@ export const LedgerList = ({ entries, hasMore, isLoading, onFilterChange, onLoad
       {hasMore && (
         <div className="text-center mt-4">
           <Button onClick={onLoadMore} disabled={isLoading}>
-            {isLoading ? 'Ładowanie...' : 'Załaduj więcej'}
+            {isLoading ? "Ładowanie..." : "Załaduj więcej"}
           </Button>
         </div>
       )}

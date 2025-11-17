@@ -55,7 +55,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Automatycznie ustaw domyślne wartości geolokalizacji jeśli użytkownik ich nie ma
     await ensureDefaultLocationIfMissing(supabase, userId);
-    
+
     // Pobierz zaktualizowany profil
     profile = await fetchProfileById(supabase, userId);
     if (!profile) {

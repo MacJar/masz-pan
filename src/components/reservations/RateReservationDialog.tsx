@@ -39,9 +39,8 @@ const RateReservationDialog: React.FC<RateReservationDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Oceń transakcję</DialogTitle>
           <DialogDescription>
-            Twoja opinia pomoże innym użytkownikom. Oceń współpracę z{" "}
-            <strong>{counterpartyName}</strong> w związku z narzędziem{" "}
-            <strong>{toolName}</strong>.
+            Twoja opinia pomoże innym użytkownikom. Oceń współpracę z <strong>{counterpartyName}</strong> w związku z
+            narzędziem <strong>{toolName}</strong>.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 flex justify-center">
@@ -61,4 +60,3 @@ const RateReservationDialog: React.FC<RateReservationDialogProps> = ({
 };
 
 export default RateReservationDialog;
-

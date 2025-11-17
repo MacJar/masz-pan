@@ -8,16 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 export function NewToolView() {
-  const {
-    state,
-    handleFormChange,
-    handleImageAdd,
-    handleImageRemove,
-    handlePublish,
-    canPublish,
-    handleSaveDraft,
-    canSaveDraft,
-  } = useNewToolManager();
+  const { state, handleFormChange, handleImageAdd, handleImageRemove, handlePublish, canPublish, handleSaveDraft } =
+    useNewToolManager();
 
   if (state.status === "creating_draft") {
     return (
@@ -46,10 +38,7 @@ export function NewToolView() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
-        <ToolForm
-          formData={state}
-          onFormChange={handleFormChange}
-        />
+        <ToolForm formData={state} onFormChange={handleFormChange} />
       </div>
       <div className="space-y-8">
         <ImageUploader images={state.images} onImageAdd={handleImageAdd} onImageRemove={handleImageRemove} />

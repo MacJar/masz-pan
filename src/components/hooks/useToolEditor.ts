@@ -130,7 +130,7 @@ export function useToolEditor(toolId: string) {
         // Sync with server state
         setTool({ ...tool, images: updatedImages });
         toast.success("Kolejność zdjęć została zaktualizowana.");
-      } catch (error) {
+      } catch {
         // Revert on error
         setTool(tool);
         toast.error("Nie udało się zapisać nowej kolejności zdjęć.");

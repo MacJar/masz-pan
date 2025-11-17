@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,13 +10,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type ActionConfirmationDialogProps = {
+interface ActionConfirmationDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onConfirm: () => void;
   title: string;
   description: string;
-};
+}
 
 const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
   isOpen,
@@ -42,5 +42,3 @@ const ActionConfirmationDialog: React.FC<ActionConfirmationDialogProps> = ({
 };
 
 export default ActionConfirmationDialog;
-
-

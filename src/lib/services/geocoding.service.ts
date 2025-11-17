@@ -7,7 +7,6 @@ const GEOCODE_TIMEOUT_MS = 3000;
 
 // Domyślne wartości geolokalizacji (kod pocztowy 00-950, Warszawa)
 const DEFAULT_POSTAL_CODE = "00-950";
-const DEFAULT_LOCATION_HEX = "0101000020E6100000865AD3BCE3F4344075931804561E4A40";
 
 export class GeocodingError extends Error {
   readonly cause?: unknown;
@@ -28,7 +27,7 @@ export function getDefaultLocation(): ProfileGeocodeResultDTO {
   // Hex string 0101000020E6100000865AD3BCE3F4344075931804561E4A40 odpowiada tym współrzędnym
   const lon = 21.012229;
   const lat = 52.229676;
-  
+
   return {
     location_geog: {
       type: "Point",

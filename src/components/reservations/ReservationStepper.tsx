@@ -1,6 +1,5 @@
 import React from "react";
 import type { ReservationStatus } from "@/types";
-import { cn } from "@/lib/utils";
 
 interface ReservationStepperProps {
   status: ReservationStatus;
@@ -47,7 +46,6 @@ const ReservationStepper: React.FC<ReservationStepperProps> = ({ status }) => {
     <div className="w-full">
       <div className="flex justify-between">
         {STEPS.map((step, index) => {
-          const isActive = index <= currentStepIndex;
           const color = getStepColor(index, currentStepIndex);
           return (
             <div key={step} className="flex-1 text-center">

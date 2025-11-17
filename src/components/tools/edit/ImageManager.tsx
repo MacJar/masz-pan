@@ -9,7 +9,6 @@ import { CSS } from "@dnd-kit/utilities";
 
 interface ImageManagerProps {
   images: ToolImageWithUrlDTO[];
-  toolId: string;
   onImageAdd: (file: File) => void;
   onImageDelete: (imageId: string) => void;
   onImageReorder: (reorderedImages: ToolImageWithUrlDTO[]) => void;
@@ -26,7 +25,7 @@ function SortableImageItem({ image, onRemove }: { image: ToolImageWithUrlDTO; on
 
   return (
     <div ref={setNodeRef} style={style} className="relative border rounded-lg overflow-hidden aspect-square touch-none">
-      <img src={imageUrl} alt={`Tool image ${image.position}`} className="w-full h-full object-cover" />
+      <img src={imageUrl} alt={`${image.position}`} className="w-full h-full object-cover" />
       <div className="absolute top-1 right-1">
         <button
           type="button"
@@ -47,7 +46,7 @@ function SortableImageItem({ image, onRemove }: { image: ToolImageWithUrlDTO; on
   );
 }
 
-export function ImageManager({ images, toolId, onImageAdd, onImageDelete, onImageReorder }: ImageManagerProps) {
+export function ImageManager({ images, onImageAdd, onImageDelete, onImageReorder }: ImageManagerProps) {
   const sortedImages = [...images].sort((a, b) => a.position - b.position);
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -80,7 +79,7 @@ export function ImageManager({ images, toolId, onImageAdd, onImageDelete, onImag
       </div>
       <div>
         <h3 className="text-lg font-medium mb-2">Dodaj nowe zdjęcia</h3>
-        <ImageUploader images={[]} onImageAdd={onImageAdd} onImageRemove={() => {}} />
+        <ImageUploader images={[]} onImageAdd={onImageAdd} onImageRemove={() => undefined} />
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
-import React from 'react';
-import { useMyToolsManager } from '@/components/hooks/useMyToolsManager';
-import StatusFilter from './StatusFilter';
-import MyToolsList from './MyToolsList';
-import SkeletonList from '@/components/tools/SkeletonList';
-import ErrorState from '@/components/tools/ErrorState';
-import EmptyState from '@/components/tools/EmptyState';
-import ActionConfirmationDialog from './ActionConfirmationDialog';
+import React from "react";
+import { useMyToolsManager } from "@/components/hooks/useMyToolsManager";
+import StatusFilter from "./StatusFilter";
+import MyToolsList from "./MyToolsList";
+import SkeletonList from "@/components/tools/SkeletonList";
+import ErrorState from "@/components/tools/ErrorState";
+import EmptyState from "@/components/tools/EmptyState";
+import ActionConfirmationDialog from "./ActionConfirmationDialog";
 
 const MyToolsView = () => {
   const {
@@ -28,7 +28,8 @@ const MyToolsView = () => {
       return <SkeletonList />;
     }
     if (error) {
-      return <ErrorState message={error.message} onRetry={() => {}} />; // TODO: Implement onRetry
+      // TODO: Implement onRetry
+      return <ErrorState message={error.message} onRetry={() => undefined} />;
     }
     if (tools.length === 0) {
       return <EmptyState message="Nie znaleziono narzędzi." />;
@@ -48,7 +49,7 @@ const MyToolsView = () => {
     <div>
       <StatusFilter activeFilter={statusFilter} onFilterChange={setStatusFilter} />
       {renderContent()}
-      
+
       {toolToArchive && (
         <ActionConfirmationDialog
           isOpen={!!toolToArchive}

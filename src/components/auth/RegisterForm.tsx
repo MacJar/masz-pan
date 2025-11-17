@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 
 export function RegisterForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
     });
@@ -30,7 +30,7 @@ export function RegisterForm() {
       setSuccess(true);
     } else {
       const data = await response.json();
-      setError(data.error || 'Rejestracja nie powiodła się');
+      setError(data.error || "Rejestracja nie powiodła się");
     }
   };
 
@@ -85,13 +85,13 @@ export function RegisterForm() {
           </div>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           <Button type="submit" className="w-full mt-4" disabled={loading}>
-            {loading ? 'Rejestrowanie...' : 'Zarejestruj się'}
+            {loading ? "Rejestrowanie..." : "Zarejestruj się"}
           </Button>
         </form>
       </CardContent>
       <CardFooter>
         <p className="text-sm">
-          Masz już konto?{' '}
+          Masz już konto?{" "}
           <a href="/auth/login" className="underline">
             Zaloguj się
           </a>

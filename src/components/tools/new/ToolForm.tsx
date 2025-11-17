@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import type { ToolFormViewModel } from "./NewTool.types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,11 +32,13 @@ export function ToolForm({
     suggested_price_tokens: initialData?.suggested_price_tokens ?? 1,
   });
   const [isDirty, setIsDirty] = useState(false);
+  const initialDataRef = useRef<UpdateToolCommand | null>(null);
 
   // Determine if the component is controlled
   const isControlled = controlledFormData !== undefined && onControlledFormChange !== undefined;
   const formData = isControlled ? controlledFormData : internalFormData;
 
+  // Initialize form data when initialData changes (only for uncontrolled mode)
   useEffect(() => {
     if (!isControlled && initialData) {
       const initialCommand: UpdateToolCommand = {
@@ -44,11 +46,18 @@ export function ToolForm({
         description: initialData.description ?? "",
         suggested_price_tokens: initialData.suggested_price_tokens ?? 1,
       };
+      initialDataRef.current = initialCommand;
       setInternalFormData(initialCommand);
-      // Check for changes compared to the initial state on every data change
-      setIsDirty(!isEqual(initialCommand, internalFormData));
+      setIsDirty(false);
     }
-  }, [initialData, internalFormData, isControlled]);
+  }, [initialData, isControlled]);
+
+  // Check if form is dirty whenever internalFormData changes
+  useEffect(() => {
+    if (!isControlled && initialDataRef.current) {
+      setIsDirty(!isEqual(initialDataRef.current, internalFormData));
+    }
+  }, [internalFormData, isControlled]);
 
   const handleFormChange = (field: keyof UpdateToolCommand, value: string | number) => {
     if (isControlled) {

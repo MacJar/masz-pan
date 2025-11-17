@@ -39,10 +39,7 @@ function ImagePreviewItem({ image, onRemove }: { image: ImageUploadState; onRemo
           <p>{statusMap[image.status]}</p>
           {(image.status === "uploading" || image.status === "compressing") && (
             <div className="w-full bg-gray-600 rounded-full h-1 mt-1">
-              <div
-                className="bg-blue-500 h-1 rounded-full"
-                style={{ width: `${image.progressPercent}%` }}
-              ></div>
+              <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${image.progressPercent}%` }}></div>
             </div>
           )}
           {image.status === "error" && <p className="text-red-400 truncate">{image.errorMessage}</p>}
@@ -57,7 +54,7 @@ export function ImageUploader({ images, onImageAdd, onImageRemove }: ImageUpload
     (acceptedFiles: File[]) => {
       acceptedFiles.forEach(onImageAdd);
     },
-    [onImageAdd],
+    [onImageAdd]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -29,4 +29,3 @@ export interface ReservationViewModel extends ReservationWithToolDTO {
   // Ocena wystawiona przez drugą stronę
   counterpartyRating: number | null;
 }
-

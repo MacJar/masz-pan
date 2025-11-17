@@ -5,8 +5,8 @@ import fs from "fs";
 import path from "path";
 
 // Odczytujemy dane logowania z zmiennych środowiskowych
-const email = process.env.TEST_USER_EMAIL!;
-const password = process.env.TEST_USER_PASSWORD!;
+const email = process.env.TEST_USER_EMAIL;
+const password = process.env.TEST_USER_PASSWORD;
 
 // Upewniamy się, że zmienne są ustawione
 if (!email || !password) {
@@ -33,27 +33,38 @@ test.afterEach(async ({ page }, testInfo) => {
     await page.screenshot({ path: screenshotPath, fullPage: true });
     fs.writeFileSync(htmlPath, await page.content());
 
+    // eslint-disable-next-line no-console
     console.log(`\n📸 Screenshot saved to: ${screenshotPath}`);
+    // eslint-disable-next-line no-console
     console.log(`📄 HTML saved to: ${htmlPath}\n`);
 
     // Log accessibility tree snapshot to console
     const accessibilitySnapshot = await page.accessibility.snapshot();
+    // eslint-disable-next-line no-console
     console.log("🌳 Accessibility Tree Snapshot:\n", accessibilitySnapshot);
   }
 
   // Logika czyszcząca - usuwanie narzędzia dodanego w teście
-  const supabaseAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return;
+  }
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   const { data: tool, error } = await supabaseAdmin.from("tools").select("id").eq("name", toolName).single();
 
   if (tool) {
     const { error: deleteError } = await supabaseAdmin.from("tools").delete().eq("id", tool.id);
     if (deleteError) {
+      // eslint-disable-next-line no-console
       console.error(`[Cleanup] Błąd podczas usuwania narzędzia "${toolName}":`, deleteError);
     } else {
+      // eslint-disable-next-line no-console
       console.log(`[Cleanup] Pomyślnie usunięto narzędzie: "${toolName}"`);
     }
   } else if (error && error.code !== "PGRST116") {
+    // eslint-disable-next-line no-console
     console.error(`[Cleanup] Błąd podczas wyszukiwania narzędzia "${toolName}":`, error);
   }
 });
