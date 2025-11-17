@@ -223,12 +223,12 @@ describe("useMyToolsManager", () => {
     expect(result.current.tools.length).toBe(2);
 
     // Open dialog
-    const toolToArchive = result.current.tools.find((t) => t.id === "1");
-    if (!toolToArchive) {
+    const foundTool = result.current.tools.find((t) => t.id === "1");
+    if (!foundTool) {
       throw new Error("Tool not found");
     }
     act(() => {
-      result.current.openArchiveDialog(toolToArchive);
+      result.current.openArchiveDialog(foundTool);
     });
     expect(result.current.toolToArchive?.id).toBe("1");
 

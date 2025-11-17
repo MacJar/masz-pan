@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
 
 jobs:
   lint:
@@ -84,7 +83,9 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        uses: microsoft/playwright@v1
+        with:
+          browsers: chromium
 
       - name: Run E2E tests
         run: npm run test:e2e

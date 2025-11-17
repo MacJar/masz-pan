@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import {
   getBalance,
@@ -81,6 +81,7 @@ export const useTokensView = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback>(null);
+  const hasMountedRef = useRef(false);
 
   const handleError = (err: unknown, defaultMessage: string) => {
     const message = err instanceof Error ? err.message : defaultMessage;
@@ -136,11 +137,12 @@ export const useTokensView = () => {
   }, []);
 
   useEffect(() => {
+    if (hasMountedRef.current) return;
+    hasMountedRef.current = true;
     fetchBalance();
     fetchLedger(ledgerFilter, true);
     fetchBonusState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchBalance, fetchLedger, fetchBonusState, ledgerFilter]);
 
   const refreshData = () => {
     fetchBalance();
